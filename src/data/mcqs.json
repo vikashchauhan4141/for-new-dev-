@@ -1,0 +1,1202 @@
+[
+  {
+    "id": 1,
+    "question": "React 19 mein `forwardRef` ke baare mein kya badla hai?",
+    "options": [
+      "forwardRef aur bhi required ho gaya",
+      "forwardRef completely remove ho gaya, ab ref directly prop ki tarah pass hota hai",
+      "forwardRef ka naam refForward ho gaya",
+      "forwardRef sirf class components mein kaam karta hai"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein ab aapko forwardRef() wrapper likhne ki zaroorat nahi. ref directly function component ko prop ki\ntarah mil jaata hai — bilkul jaise onClick ya className milta hai.\n\n// React\n \n18 (purana tarika)\nconst\n \nInput = forwardRef((props, ref)\n \n=> (\n<input ref={ref} {...props} />\n));\n// React\n \n19 (naya tarika)\n \nn\n\nfunction\n \nInput({ ref, ...props }) {\nreturn <input ref={ref} {...props} />;\n}\n\nn\n \nReal Life: Ek design system mein aap Button, Input, Modal — sab mein forwardRef likhte the. Ab seedha ref\npass karo, code 30% chhota ho jaata hai."
+  },
+  {
+    "id": 2,
+    "question": "React 19 mein `use()` hook kya karta hai?",
+    "options": [
+      "Sirf custom hooks banane ke liye",
+      "Promise aur Context dono ko conditionally read karne deta hai",
+      "useEffect ka replacement hai",
+      "Server-side rendering ke liye sirf"
+    ],
+    "answer": "B",
+    "explanation": "`use()` ek naya hook hai jo Promise aur Context dono ko read kar sakta hai. Sabse bada faida — yeh conditionally\nbhi call ho sakta hai, jo React ke purane hook rules ke against tha.\n\nimport {\n \nuse, Suspense } from 'react';\nfunction\n \nUserName({ userPromise }) {\nconst\n \nuser = use(userPromise); // Promise\n \nresolve\n \nkarega\nreturn <h1>{user.name}</h1>;\n}\n// Context bhi use() se read kar sakte ho\nfunction\n \nTheme({ children }) {\nconst\n \ntheme = use(ThemeContext); // useContext jaisa\nreturn <div className={theme}>{children}</div>;\n}\n\nn\n \nReal Life: E-commerce app mein product details fetch karna — Suspense ke saath use() lagao, loading\nspinner automatically handle hoga."
+  },
+  {
+    "id": 3,
+    "question": "React 19 mein `` ko provider ki tarah kaise use karte hain?",
+    "options": [
+      "",
+      "directly",
+      "",
+      "useContext(Context, value)"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein ab likhne ki zaroorat nahi. Aap seedha likh sakte ho. Yeh cleaner syntax hai.\n\nconst\n \nThemeContext = createContext('light');\n// React\n \n18\n<ThemeContext.Provider value=\"dark\">\n<App\n \n/>\n</ThemeContext.Provider>\n// React\n \n19\n \nn\n\n<ThemeContext value=\"dark\">\n<App\n \n/>\n</ThemeContext>\n\nn\n \nReal Life: Puri app mein dark/light mode context wrap karna — naya syntax zyada readable aur concise hai."
+  },
+  {
+    "id": 4,
+    "question": "React 19 mein `useOptimistic` hook ka main purpose kya hai?",
+    "options": [
+      "API call cancel karna",
+      "UI ko optimistically update karna jab async operation chal raha ho",
+      "Component ko optimize karna re-renders ke liye",
+      "Lazy loading ke liye"
+    ],
+    "answer": "B",
+    "explanation": "`useOptimistic` aapko UI ko turant update karne deta hai server response aane se pehle. Agar server fail ho, toh\nautomatically rollback ho jaata hai.\n\nimport {\n \nuseOptimistic } from 'react';\nfunction\n \nLikeButton({ post }) {\nconst\n \n[optimisticLikes, addOptimisticLike] = useOptimistic(\npost.likes,\n(current,\n \nnewLike) => current + newLike\n);\nasync\n \nfunction handleLike() {\naddOptimisticLike(1); // Turant +1 dikhao\nawait\n \nlikePost(post.id); // Server call\n}\nreturn <button onClick={handleLike}>\n¤n\n \n{optimisticLikes}</button>;\n}\n\nn\n \nReal Life: Instagram mein like karte ho — button turant fill ho jaata hai bina server response ka wait kiye. Yahi\nuseOptimistic karta hai."
+  },
+  {
+    "id": 5,
+    "question": "`useFormStatus` hook kahan se import karte hain React 19 mein?",
+    "options": [
+      "react",
+      "react-dom",
+      "react-dom/client",
+      "react/hooks"
+    ],
+    "answer": "B",
+    "explanation": "`useFormStatus` react-dom package mein hai, react mein nahi. Yeh hook form submission ka status deta hai —\npending, data, method, action.\n\nimport {\n \nuseFormStatus } from 'react-dom';\nfunction\n \nSubmitButton() {\nconst\n \n{ pending } = useFormStatus();\nreturn (\n<button disabled={pending}>\n{pending\n \n? 'Submitting...' : 'Submit'}\n</button>\n);\n}\nfunction\n \nMyForm() {\nreturn (\n<form\n \naction={submitAction}>\n<input name=\"email\" />\n<SubmitButton /> {/* Form ke andar hona\n \nchahiye\n \n*/}\n</form>\n);\n}\n\nn\n \nReal Life: Login form mein submit button ko disable karna jab tak request complete nahi ho — double submit\nprevent karta hai.\n\nSECTION 2: Core Hooks – useState, useEffect, useContext"
+  },
+  {
+    "id": 6,
+    "question": "`useState` mein functional update kab use karni chahiye?",
+    "options": [
+      "Jab state string ho",
+      "Jab naya state purane state par depend karta ho",
+      "Sirf arrays ke liye",
+      "Async operations mein sirf"
+    ],
+    "answer": "B",
+    "explanation": "Jab naya state purane state ki value pe depend kare, toh functional update form use karo. Yeh stale closure\nproblem solve karta hai — React guaranteed latest state deta hai callback mein.\n\n// Galat\n \ntarika (stale closure ho sakta\n \nhai)\nsetCount(count + 1);\n// Sahi tarika\n \nn\n\nsetCount(prevCount => prevCount + 1);\n// Example: Rapid clicks handle karna\nfunction\n \nCounter() {\nconst\n \n[count, setCount] = useState(0);\nfunction\n \nhandleFastClick() {\n\nsetCount(c => c + 1); // Har click par latest\n \nvalue\n \nmilegi\nsetCount(c => c + 1);\nsetCount(c => c + 1); // Result: +3\n}\nreturn <button onClick={handleFastClick}>{count}</button>;\n}\n\nn\n \nReal Life: Shopping cart mein quantity badhana — rapid clicks pe sahi count chahiye, functional update\nguarantee deta hai."
+  },
+  {
+    "id": 7,
+    "question": "`useEffect` ki dependency array mein empty array `[]` dene ka matlab kya hai?",
+    "options": [
+      "Effect har render pe chalega",
+      "Effect bilkul nahi chalega",
+      "Effect sirf mount pe chalega, unmount pe cleanup",
+      "Effect sirf unmount pe chalega"
+    ],
+    "answer": "C",
+    "explanation": "Empty dependency array `[]` matlab effect sirf component mount hone par ek baar chalega (componentDidMount\njaisa). Agar cleanup function return karo, woh unmount par chalega.\n\nuseEffect(() => {\nconsole.log('Component mount hua'); // Sirf\n \nek baar\nconst\n \nsubscription = subscribe(userId);\nreturn ()\n \n=> {\nsubscription.unsubscribe(); // Unmount par cleanup\nconsole.log('Component unmount hua');\n};\n}, []); // Empty array = sirf mount/unmount\n\nn\n \nReal Life: Chat app mein WebSocket connection banana on mount, aur user page chhodne par disconnect\nkarna — yahi pattern use hota hai."
+  },
+  {
+    "id": 8,
+    "question": "Niche diya code ka output kya hoga? `const [state, setState] = useState({name: 'Raj', age: 25});` `setState({name: 'Priya'});`",
+    "options": [
+      "{name: 'Priya', age: 25}",
+      "{name: 'Priya'}",
+      "{name: 'Raj', age: 25}",
+      "Error aayega"
+    ],
+    "answer": "B",
+    "explanation": "useState mein setState purani state ko merge NAHI karta (class component ke this.setState se alag). Yeh state ko\ncompletely replace kar deta hai. Isliye spread operator use karo.\n\n// Galat\n \n— age gayab ho jaayega\nsetState({ name: 'Priya' }); // Result:\n \n{name: 'Priya'}\n// Sahi tarika\n \nn\n\nsetState(prev => ({ ...prev, name: 'Priya' }));\n// Result: {name: 'Priya', age: 25}\n\nn\n \nReal Life: User profile update karte waqt sirf email change karo, baaki fields preserve karo — spread operator\nzaroor lagao."
+  },
+  {
+    "id": 9,
+    "question": "`useContext` re-render kab trigger karta hai?",
+    "options": [
+      "Jab koi bhi parent re-render ho",
+      "Jab context ki value change ho",
+      "Sirf jab component ke props change hoo",
+      "Kabhi nahi, context re-render nahi karta"
+    ],
+    "answer": "B",
+    "explanation": "useContext tab re-render trigger karta hai jab context provider ki value change ho. Agar value object hai aur har\nrender pe naya object bane, toh unnecessary re-renders honge.\n\n// Problem — har render pe naya object banta hai\n<ThemeContext.Provider value={{ theme, setTheme\n \n}}>\n// Solution — useMemo se stabilize karo\n \nn\n\nconst\n \ncontextValue = useMemo(\n() =>\n \n({\n \ntheme, setTheme }),\n[theme]\n);\n<ThemeContext.Provider value={contextValue}>\n\nn\n \nReal Life: Theme toggle app mein agar context value stabilize nahi kiya, toh puri app har render pe re-render\nhogi — performance issue."
+  },
+  {
+    "id": 10,
+    "question": "`useEffect` mein cleanup function kab return karna zaroori hai?",
+    "options": [
+      "Sirf jab API call ho",
+      "Jab bhi side effect ke baad resources clean karne ho (subscriptions, timers, event listeners)",
+      "Sirf class components mei",
+      "Kabhi zaroorat nahi"
+    ],
+    "answer": "B",
+    "explanation": "Cleanup function tab return karo jab aapka effect koi resource allocate kare jaise timer, event listener, WebSocket,\nsubscription. Bina cleanup ke memory leaks aur bugs aate hain.\n\nuseEffect(() => {\n// Timer\n \nset kiya\nconst\n \ntimerId = setTimeout(() => {\nsetMessage('Time out!');\n}, 3000);\n// Cleanup — component unmount ya dependency change\n \npar\nreturn ()\n \n=> clearTimeout(timerId);\n}, []);\n\nn\n \nReal Life: Auto-logout timer — agar user page chhodta hai cleanup nahi hua toh timer background mein chalta\nrahega aur errors aa sakte hain.\n\nSECTION 3: useRef, useMemo, useCallback"
+  },
+  {
+    "id": 11,
+    "question": "`useRef` aur `useState` mein kya fark hai?",
+    "options": [
+      "Koi fark nahi dono same hain",
+      "useRef change hone par re-render nahi karta, useState karta hai",
+      "useRef sirf DOM elements ke liye hai",
+      "useState async hai, useRef sync"
+    ],
+    "answer": "B",
+    "explanation": "useRef `.current` mein value store karta hai jo change hone par component re-render nahi karta. useState\nre-render trigger karta hai. useRef mutable values store karne ke liye bhi use hota hai.\n\n// useRef\n \n— re-render nahi karega\nconst\n \ncountRef = useRef(0);\ncountRef.current = 5; // Koi re-render nahi\n// useState — re-render karega\nconst\n \n[count, setCount] = useState(0);\nsetCount(5); // Re-render hoga\n// DOM reference example\nconst\n \ninputRef = useRef(null);\n<input ref={inputRef} />\ninputRef.current.focus(); // DOM element access\n\nn\n \nReal Life: Video player mein current time track karna — har second re-render chahiye nahi, useRef perfect hai."
+  },
+  {
+    "id": 12,
+    "question": "`useMemo` ka use kab karna chahiye?",
+    "options": [
+      "Har jagah jahan calculation ho",
+      "Sirf jab expensive calculation ho aur dependencies change na hoo",
+      "Event handlers memoize karne ke liye",
+      "API calls ke liye"
+    ],
+    "answer": "B",
+    "explanation": "useMemo ek memoized value return karta hai. Use tabhi karo jab calculation genuinely expensive ho (sorting,\nfiltering large arrays). Chhoti calculations pe useMemo lagana overhead add karta hai.\n\nconst\n \nexpensiveResult = useMemo(() =>\n \n{\n// Yeh sirf tab recalculate hoga jab products\n \nya filterText\n \nchange\n \nho\nreturn products\n.filter(p\n \n=> p.name.includes(filterText))\n.sort((a,\n \nb) => a.price - b.price);\n}, [products, filterText]);\n// DON'T\n \ndo this — unnecessary\nconst\n \nname = useMemo(() => user.firstName\n \n+\n \n'\n \n'\n \n+\n \nuser.lastName,\n[user]);\n \n// Simple string join ke liye useMemo overkill\n \nhai\n\nn\n \nReal Life: Amazon jaisi site mein 10,000 products filter karna — useMemo se sirf filter text change hone par\nrecalculate hoga."
+  },
+  {
+    "id": 13,
+    "question": "`useCallback` aur `useMemo` mein kya farq hai?",
+    "options": [
+      "Dono same hain",
+      "useCallback function memoize karta hai, useMemo value memoize karta hai",
+      "useMemo sirf objects ke liye",
+      "useCallback sirf event handlers ke liye"
+    ],
+    "answer": "B",
+    "explanation": "useCallback\n \nmemoized\n \nfunction\n \nreference\n \nreturn\n \nkarta\n \nhai.\n \nuseMemo\n \nmemoized\n \nvalue\n \nreturn\n \nkarta\n \nhai.\nuseCallback(fn, deps) === useMemo(() => fn, deps) — technically same hai.\n\n// useCallback — function reference stable rakhta\n \nhai\nconst\n \nhandleClick = useCallback(() =>\n \n{\ndoSomething(id);\n}, [id]);\n// useMemo — computed value memoize karta\n \nhai\nconst\n \nsortedList = useMemo(() => {\nreturn [...list].sort();\n}, [list]);\n// Child\n \ncomponent ko stable function\n \npass karne ke\n \nliye\n<ExpensiveChild onAction={handleClick} />\n// Bina useCallback ke har parent render pe\n \nnaya function\n \nbnega\n\nn\n \nReal Life: Table mein row delete button — bina useCallback ke har render pe naya function banta hai aur\nReact.memo bhi kaam nahi karta."
+  },
+  {
+    "id": 14,
+    "question": "`useRef` se previous state value kaise store karte hain?",
+    "options": [
+      "useRef ka koi use nahi is case mein",
+      "useEffect mein ref.current ko state se update karo render ke baad",
+      "useState se store karo",
+      "Directly ref = state likho"
+    ],
+    "answer": "B",
+    "explanation": "useEffect render ke baad chalta hai. Toh pehle render hoga current value ke saath, phir useEffect mein ref update\nhoga. Next render mein ref.current mein previous value hogi.\n\nfunction\n \nCounter() {\nconst\n \n[count, setCount] = useState(0);\nconst\n \nprevCountRef = useRef(0);\nuseEffect(() => {\nprevCountRef.current = count; // Render\n \nke baad\n \nupdate\n});\nreturn (\n<div>\n<p>Current: {count}</p>\n<p>Previous: {prevCountRef.current}</p>\n<button onClick={() => setCount(c => c + 1)}>+1</button>\n</div>\n);\n}\n\nn\n \nReal Life: Stock price app mein pichla price aur current price compare karna — green ya red arrow dikhane ke\nliye."
+  },
+  {
+    "id": 15,
+    "question": "Ek component mein sirf ek useRef ho sakta hai?",
+    "options": [
+      "Haan, sirf ek",
+      "Nahi, multiple useRef use kar sakte hai",
+      "Maximum 3",
+      "Ref sirf class components mein use hota hai"
+    ],
+    "answer": "B",
+    "explanation": "React mein multiple hooks use kar sakte hain. Aap ek component mein kitne bhi useRef, useState, useEffect etc.\nuse kar sakte hain — bas unka order consistent rehna chahiye (conditionally call mat karo).\n\nfunction\n \nForm() {\nconst\n \nnameRef = useRef(null);\nconst\n \nemailRef = useRef(null);\nconst\n \npasswordRef = useRef(null);\nfunction\n \nhandleSubmit() {\nconsole.log(nameRef.current.value);\nconsole.log(emailRef.current.value);\n}\nreturn (\n<>\n<input ref={nameRef} placeholder=\"Name\"\n \n/>\n<input ref={emailRef} placeholder=\"Email\"\n \n/>\n<input ref={passwordRef} type=\"password\" />\n</>\n);\n}\n\nn\n \nReal Life: Multi-field form mein har field ka alag ref — submit pe sab fields ko programmatically access karna.\n\nSECTION 4: useReducer"
+  },
+  {
+    "id": 16,
+    "question": "`useReducer` kab prefer karna chahiye `useState` ke upar?",
+    "options": [
+      "Sirf jab state number ho",
+      "Jab state logic complex ho aur multiple sub-values hon ya state transitions rules-based ho",
+      "Sirf Redux use karne ke liye",
+      "Performance ke liye hamesha"
+    ],
+    "answer": "B",
+    "explanation": "useReducer better hai jab state complex object ho, multiple state values ek saath update hoon, ya next state pichle\nstate par depend kare. useState simple values ke liye, useReducer complex state machine ke liye.\n\nconst\n \ninitialState = { count: 0, loading:\n \nfalse, error:\n \nnull\n \n};\nfunction\n \nreducer(state, action) {\nswitch (action.type) {\ncase\n \n'INCREMENT':\nreturn {\n \n...state, count: state.count\n \n+\n \n1\n \n};\ncase\n \n'SET_LOADING':\nreturn {\n \n...state, loading: action.payload };\ncase\n \n'SET_ERROR':\nreturn {\n \n...state, error: action.payload,\n \nloading:\n \nfalse\n \n};\ndefault:\n\nreturn state;\n}\n}\nconst\n \n[state, dispatch] = useReducer(reducer,\n \ninitialState);\ndispatch({ type: 'INCREMENT' });\n\nn\n \nReal Life: Shopping cart — items add/remove, quantity update, total calculate sab ek reducer mein manage\nkaro."
+  },
+  {
+    "id": 17,
+    "question": "`useReducer` mein `dispatch` function kya karta hai?",
+    "options": [
+      "State directly set karta hai",
+      "Reducer function ko action ke saath call karta hai aur state update karta hai",
+      "Component re-render force karta hai",
+      "Async operations handle karta hai"
+    ],
+    "answer": "B",
+    "explanation": "dispatch ek action object accept karta hai, usse reducer ko bhejta hai. Reducer current state aur action lekar new\nstate return karta hai. React tab component re-render karta hai.\n\n// Action\n \ndispatch karna\ndispatch({ type: 'ADD_ITEM', payload:\n \n{\n \nid:\n \n1, name:\n \n'Phone'\n \n}\n \n});\ndispatch({ type: 'REMOVE_ITEM', payload: 1 });\ndispatch({ type: 'CLEAR_CART' });\n// Reducer mein handle\nfunction\n \ncartReducer(state, action) {\nswitch (action.type) {\ncase\n \n'ADD_ITEM':\nreturn {\n \n...state, items: [...state.items, action.payload]\n \n};\ncase\n \n'REMOVE_ITEM':\nreturn {\n \n...state,\nitems: state.items.filter(i => i.id !==\n \naction.payload)\n \n};\ncase\n \n'CLEAR_CART':\nreturn {\n \n...state, items: [] };\ndefault:\n \nreturn state;\n}\n}\n\nn\n \nReal Life: Ek Redux-like pattern bina Redux install kiye — medium apps ke liye useReducer kaafi hota hai."
+  },
+  {
+    "id": 18,
+    "question": "`useReducer` ki initial state lazy initialize kaise karte hain?",
+    "options": [
+      "Possible nahi",
+      "Teesra argument `init` function pass karke",
+      "useEffect mein initialize karke",
+      "useState ke saath use karke"
+    ],
+    "answer": "B",
+    "explanation": "useReducer ka teesra argument ek init function hota hai jo initial state compute karta hai. Yeh tab useful hai jab\ninitial state expensive calculation se aaye ya localStorage se load karni ho.\n\nfunction\n \ninit(initialCount) {\n// Expensive initial state calculation ya\n \nlocalStorage\nconst\n \nsaved = localStorage.getItem('count');\nreturn {\n \ncount: saved ? parseInt(saved)\n \n:\n \ninitialCount\n \n};\n}\nconst\n \n[state, dispatch] = useReducer(\nreducer,\n0, //\n \ninitialArg — init function ko pass hoga\ninit\n \n// init function — ek baar hi chalega\n);\n\nn\n \nReal Life: App start hone par saved cart data localStorage se load karna — init function se ek baar load karo."
+  },
+  {
+    "id": 19,
+    "question": "Kya `useReducer` se `dispatch` function ka reference stable hota hai?",
+    "options": [
+      "Nahi, har render pe naya dispatch milta hai",
+      "Haan, React guarantee deta hai dispatch kabhi nahi badlega",
+      "Sirf tab jab state nahi badle",
+      "useMemo ke saath hi stable hota hai"
+    ],
+    "answer": "B",
+    "explanation": "React guarantee karta hai ki dispatch function ka reference stable hai — re-renders mein same reference milta hai.\nIsliye dispatch ko useCallback mein wrap karne ki zaroorat nahi.\n\nconst\n \n[state, dispatch] = useReducer(reducer,\n \ninitialState);\n// dispatch stable hai, useCallback ki zaroorat\n \nnahi\n// Directly child mein pass kar sakte\n \nho\n<ChildComponent onAction={dispatch} />\n// Yeh unnecessary hai:\n// const\n \nstableDispatch = useCallback(dispatch,\n \n[]);\n \n//\n \nNo\n \nneed!\n\nn\n \nReal Life: Context mein dispatch pass karte waqt — stable reference hone se unnecessary re-renders nahi\nhote children mein."
+  },
+  {
+    "id": 20,
+    "question": "`useState` vs `useReducer` — performance mein kya fark hai?",
+    "options": [
+      "useReducer hamesha faster hai",
+      "useState hamesha faster hai",
+      "Performance difference minimal hai, choice architecture par depend karta hai",
+      "useReducer memoization karta hai automatically"
+    ],
+    "answer": "C",
+    "explanation": "Performance mein koi significant difference nahi. useReducer ka benefit code organization aur predictability hai,\nspeed nahi. Complex state ke liye useReducer readable hai.\n\n// useState — simple ke liye theek hai\nconst\n \n[isOpen, setIsOpen] = useState(false);\nconst\n \n[title, setTitle] = useState('');\n// useReducer — complex state ke liye\n \nbetter\nconst\n \n[modalState, dispatch] = useReducer(modalReducer,\n \n{\nisOpen: false,\n\ntitle: '',\ncontent:\n \nnull,\ntype:\n \n'info'\n});\n// Ek\n \ndispatch mein multiple fields update ho\n \nsakti\n \nhain\n\nn\n \nReal Life: Simple toggle ke liye useState, modal/drawer state (isOpen, title, type, data) ke liye useReducer.\n\nSECTION 5: useTransition & useDeferredValue"
+  },
+  {
+    "id": 21,
+    "question": "`useTransition` hook kya problem solve karta hai?",
+    "options": [
+      "Async API calls ko handle karta hai",
+      "UI ko responsive rakhta hai by marking some state updates as non-urgent",
+      "CSS transitions add karta hai",
+      "Component lazy load karta hai"
+    ],
+    "answer": "B",
+    "explanation": "useTransition urgent vs non-urgent updates differentiate karta hai. Urgent update (typing) immediately hota hai,\ntransition (search results) defer ho jaata hai. Isse UI block nahi hoti.\n\nimport {\n \nuseState, useTransition } from\n \n'react';\nfunction\n \nSearchPage() {\nconst\n \n[query, setQuery] = useState('');\nconst\n \n[results, setResults] = useState([]);\nconst\n \n[isPending, startTransition] = useTransition();\nfunction\n \nhandleSearch(e) {\nsetQuery(e.target.value); // Urgent —\n \ninput\n \nturant\n \nupdate\nstartTransition(() => {\nsetResults(searchData(e.target.value));\n \n// Non-urgent\n});\n}\nreturn (\n<>\n<input value={query} onChange={handleSearch} />\n{isPending ? <p>Searching...</p> : <ResultsList\n \ndata={results}\n \n/>}\n</>\n);\n}\n\nn\n \nReal Life: Google search jaisi live search — typing smooth rehti hai aur results background mein update hote\nhain."
+  },
+  {
+    "id": 22,
+    "question": "`useDeferredValue` aur `useTransition` mein kya fark hai?",
+    "options": [
+      "Dono same hain",
+      "useDeferredValue value defer karta hai, useTransition state update defer karta hai. useDeferredValue tab use karo jab parent se value aaye.",
+      "useDeferredValue sirf strings ke liye",
+      "useTransition React 18 mein tha, useDeferredValue React 19 mein naya hai"
+    ],
+    "answer": "B",
+    "explanation": "useTransition apni state updates ko control karta hai. useDeferredValue kisi bhi value (prop bhi) ko defer kar sakta\nhai. Dono concurrent features hain.\n\n// useTransition — apne state update control karo\nconst\n \n[isPending, startTransition] = useTransition();\nstartTransition(() => setState(newValue));\n// useDeferredValue — prop ya external value defer\n \nkaro\nfunction\n \nSearchResults({ query }) {\nconst\n \ndeferredQuery = useDeferredValue(query);\n// deferredQuery thoda peeche chalega\n \nquery\n \nse\nconst\n \nresults = useMemo(\n() =>\n \nsearchData(deferredQuery),\n[deferredQuery]\n);\nreturn <List data={results} />;\n}\n\nn\n \nReal Life: Parent se search query prop milti hai — useDeferredValue se expensive filtering defer karo bina\nparent modify kiye."
+  },
+  {
+    "id": 23,
+    "question": "`useTransition` se `isPending` flag ka kya matlab hai?",
+    "options": [
+      "API call chal rahi hai",
+      "Transition state update abhi pending hai — complete nahi hua",
+      "Component mount ho raha hai",
+      "Error aayi hai"
+    ],
+    "answer": "B",
+    "explanation": "isPending true hota hai jab startTransition ke andar wrapped update abhi complete nahi hua. Is time user ko\nloading indicator dikhao.\n\nconst\n \n[isPending, startTransition] = useTransition();\n// isPending ka use\n{isPending && (\n<div\n \nclassName=\"overlay\">\n<Spinner\n \n/>\n</div>\n)}\n// Ya\n \nopacity se indicate karo\n<div\n \nstyle={{ opacity: isPending ? 0.6 : 1 }}>\n<HeavyComponent data={data} />\n</div>\n\nn\n \nReal Life: Tab switching mein — current tab ka content thoda fade karo jab naya tab load ho raha ho."
+  },
+  {
+    "id": 24,
+    "question": "Kya `startTransition` ke andar `async` function use kar sakte hain? (React 19)",
+    "options": [
+      "Nahi, sirf sync code",
+      "Haan, React 19 mein async functions support hai startTransition mei",
+      "Sirf useEffect ke saath",
+      "Sirf Server Actions ke saath"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein startTransition async functions support karta hai. Yeh ek bada improvement hai React 18 se, jahan\nsirf synchronous callbacks allowed the.\n\n// React\n \n19 — async startTransition\n \nn\n\nconst\n \n[isPending, startTransition] = useTransition();\nasync\n \nfunction handleSubmit(formData)\n \n{\nstartTransition(async () => {\nconst\n \nresult = await saveData(formData); //\n \nAsync\n \nkaam\n \nkarta\n \nhai\nsetUser(result.user);\nsetMessage('Saved!');\n});\n}\n// isPending await ke dauran bhi true\n \nrahega\n\nn\n \nReal Life: Form save karna — async data save + UI update dono ek saath transition mein handle karo."
+  },
+  {
+    "id": 25,
+    "question": "`useDeferredValue` se kya guarantee milti hai?",
+    "options": [
+      "Value kabhi stale nahi hogi",
+      "Deferred value eventually consistent ho jaayegi urgent updates ke baad",
+      "Value 500ms delay ke saath aayegi",
+      "Value kabhi update nahi hogi"
+    ],
+    "answer": "B",
+    "explanation": "useDeferredValue temporary stale value rakh sakta hai. React pehle urgent update render karega, phir jab time\nmile deferred value ke saath re-render karega. Eventually dono sync ho jaate hain.\n\nfunction\n \nProductList({ searchText }) {\nconst\n \ndeferredSearch = useDeferredValue(searchText);\n// Ye\n \ncheck karo kya stale data dikh raha\n \nhai\nconst\n \nisStale = deferredSearch !== searchText;\nconst\n \nfiltered = useMemo(\n() =>\n \nproducts.filter(p => p.name.includes(deferredSearch)),\n[deferredSearch]\n);\nreturn (\n<ul style={{ opacity: isStale ? 0.7 :\n \n1\n \n}}>\n{filtered.map(p => <li key={p.id}>{p.name}</li>)}\n</ul>\n);\n}\n\nn\n \nReal Life: Search results thode dim dikhao jab user type kar raha ho — bata raha hai ki fresh results aa rahe\nhain.\n\nSECTION 6: useId & useImperativeHandle"
+  },
+  {
+    "id": 26,
+    "question": "`useId` hook kab use karte hain?",
+    "options": [
+      "Unique list keys generate karne ke liye",
+      "Accessibility ke liye stable unique IDs banane ke liye jo server aur client mein match karei",
+      "User authentication ke liye",
+      "Database IDs generate karne ke liye"
+    ],
+    "answer": "B",
+    "explanation": "useId accessibility attributes (htmlFor, aria-labelledby) ke liye unique, stable IDs generate karta hai. Yeh SSR mein\nbhi server-client hydration mismatch avoid karta hai. List keys ke liye mat use karo.\n\nimport {\n \nuseId } from 'react';\nfunction\n \nFormField({ label, type }) {\nconst\n \nid\n \n= useId(); // ':r0:', ':r1:'\n \njaise\n \nunique\n \nIDs\nreturn (\n<div>\n<label htmlFor={id}>{label}</label>\n<input id={id} type={type} />\n</div>\n);\n}\n// Multiple IDs ek component mein\nfunction\n \nComplexForm() {\nconst\n \nid\n \n= useId();\nreturn (\n<>\n<input id={`${id}-name`} aria-label=\"Name\" />\n<input id={`${id}-email`} aria-label=\"Email\" />\n</>\n);\n}\n\nn\n \nReal Life: Reusable Input component library banate waqt — har instance ko unique ID chahiye label aur input\nmatch karne ke liye."
+  },
+  {
+    "id": 27,
+    "question": "`useImperativeHandle` kya karta hai?",
+    "options": [
+      "Parent ko child ka poora DOM expose karta hai",
+      "Parent ko child ke specific methods/values expose karta hai ref ke through",
+      "Child component ko parent ka DOM access deta hai",
+      "Sirf class components mein use hota hai"
+    ],
+    "answer": "B",
+    "explanation": "useImperativeHandle se aap control kar sakte ho ki parent ko ref.current mein kya milega. Poora DOM expose\nkarne ki jagah sirf specific methods expose karo — encapsulation maintain hoti hai.\n\n// React\n \n19 — forwardRef ke bina\nfunction\n \nVideoPlayer({ ref }) {\nconst\n \nvideoRef = useRef(null);\nuseImperativeHandle(ref, () => ({\nplay:\n \n()\n \n=> videoRef.current.play(),\n\npause: ()\n \n=> videoRef.current.pause(),\n// Poora\n \nvideo DOM expose nahi — sirf\n \nye methods\n}));\nreturn <video ref={videoRef} src=\"movie.mp4\" />;\n}\n// Parent\n \nmein\nconst\n \nplayerRef = useRef(null);\n<VideoPlayer ref={playerRef} />\nplayerRef.current.play(); // Direct DOM\n \nnahi,\n \nsirf\n \nexposed\n \nmethod\n\nn\n \nReal Life: Custom video player component — parent sirf play/pause call kare, baaki video DOM internally\nrahe."
+  },
+  {
+    "id": 28,
+    "question": "`useImperativeHandle` kab use karna chahiye?",
+    "options": [
+      "Har component mein",
+      "Jab parent ko child ke specific imperative actions trigger karni hoon (focus, scroll, play)",
+      "Performance optimization ke liye hamesha",
+      "State management ke liye"
+    ],
+    "answer": "B",
+    "explanation": "useImperativeHandle sparingly use karo. Sirf tab jab parent ko child ke andar kuch trigger karna ho jo state/props\nse possible na ho jaise focus, scroll position, animation trigger.\n\nfunction\n \nSearchInput({ ref }) {\nconst\n \ninputRef = useRef(null);\nuseImperativeHandle(ref, () => ({\nfocus: ()\n \n=> {\ninputRef.current.focus();\ninputRef.current.select(); // Text select\n \nbhi\n},\nclear: ()\n \n=> {\ninputRef.current.value = '';\n}\n}));\nreturn <input ref={inputRef} />;\n}\n// Parent\nconst\n \nsearchRef = useRef();\n<button onClick={() => searchRef.current.focus()}>\nSearch karo\n</button>\n\nn\n \nReal Life: Search bar mein keyboard shortcut (Ctrl+K) press karne par input focus karna parent component se.\n\nSECTION 7: Custom Hooks"
+  },
+  {
+    "id": 29,
+    "question": "Custom hook banana kab zaroori hai?",
+    "options": [
+      "Jab component 100 lines se bada ho",
+      "Jab same stateful logic multiple components mein reuse karni ho",
+      "Sirf performance ke liye",
+      "Jab useEffect use karna ho"
+    ],
+    "answer": "B",
+    "explanation": "Custom hooks stateful logic extract karte hain aur reuse karte hain. Agar same useEffect + useState combination\n2-3 components mein likha hai, custom hook banao.\n\n// Custom\n \nhook — useFetch\nfunction\n \nuseFetch(url) {\nconst\n \n[data, setData] = useState(null);\nconst\n \n[loading, setLoading] = useState(true);\nconst\n \n[error, setError] = useState(null);\nuseEffect(() => {\nsetLoading(true);\nfetch(url)\n.then(res\n \n=> res.json())\n.then(d => { setData(d); setLoading(false);\n \n})\n.catch(e\n \n=> { setError(e); setLoading(false);\n \n});\n}, [url]);\nreturn {\n \ndata, loading, error };\n}\n// Use karo kisi bhi component mein\nconst\n \n{ data, loading, error } = useFetch('/api/users');\n\nn\n \nReal Life: Har API call ke liye loading, error, data logic repeat hota tha — useFetch banao ek baar, har jagah\nuse karo."
+  },
+  {
+    "id": 30,
+    "question": "Custom hook ka naam kis se shuru hona chahiye?",
+    "options": [
+      "'custom'",
+      "'use'",
+      "'hook'",
+      "Kuch bhi chal sakta hai"
+    ],
+    "answer": "B",
+    "explanation": "'use' prefix React ke liye convention nahi, rule hai. React lint rules check karte hain ki hooks 'use' se shuru hon —\nisse React jan sakta hai ki yeh ek hook hai aur rules apply kare.\n\n// Sahi naming\n \nn\n\nfunction\n \nuseLocalStorage(key, initialValue)\n \n{\n \n...\n \n}\nfunction\n \nuseDebounce(value, delay) { ... }\nfunction\n \nuseOnlineStatus() { ... }\nfunction\n \nuseWindowSize() { ... }\n// Galat\n \nnaming\n \n7\n \n— React hook rules apply\n \nnahi honge\nfunction\n \nfetchData() { useState... } //\n \nWarning\n \naayega\nfunction\n \nlocalStorageHelper() { useEffect... } //\n \nBug\n \nprone\n\nn\n \nReal Life: ESLint react-hooks plugin 'use' prefix check karta hai — team mein consistency ke liye naming\nconvention follow karo."
+  },
+  {
+    "id": 31,
+    "question": "Custom hook se kya return karna chahiye?",
+    "options": [
+      "Hamesha array [value, setValue]",
+      "Hamesha object {}",
+      "Jo bhi useful ho — value, array, object, function, ya kuch nahi",
+      "Sirf JSX"
+    ],
+    "answer": "C",
+    "explanation": "Custom hook se kuch bhi return kar sakte ho. useState jaisa array, useQuery jaisa object, ya sirf ek value. Design\nkaro usecase ke hisaab se.\n\n// Array\n \nreturn (useState pattern)\nconst\n \n[value, setValue] = useLocalStorage('key', '');\n// Object\n \nreturn (multiple values)\nconst\n \n{ data, loading, error, refetch\n \n}\n \n=\n \nuseFetch(url);\n// Single\n \nvalue return\nconst\n \nisOnline = useOnlineStatus();\n// Function return\nconst\n \ndebouncedValue = useDebounce(searchText, 300);\n// Kuch return nahi (sirf side effect)\nusePageTitle('My App');\n\nn\n \nReal Life: API hook ke liye object return karo (data, loading, error, refetch), toggle hook ke liye [value, toggle]\narray."
+  },
+  {
+    "id": 32,
+    "question": "`useLocalStorage` custom hook mein kya problem aa sakti hai SSR mein?",
+    "options": [
+      "Koi problem nahi",
+      "Server pe `window` aur `localStorage` available nahi hote — error aayega",
+      "localStorage async hai server pe",
+      "SSR mein hooks work nahi karte"
+    ],
+    "answer": "B",
+    "explanation": "Next.js jaisi SSR frameworks mein server pe window object nahi hota. localStorage access karne se 'window is not\ndefined' error aata hai. typeof window check karna zaroori hai.\n\nfunction\n \nuseLocalStorage(key, initialValue)\n \n{\nconst\n \n[storedValue, setStoredValue] =\n \nuseState(()\n \n=>\n \n{\n// SSR check — typeof window undefined check\nif (typeof window === 'undefined') return\n \ninitialValue;\ntry {\nconst\n \nitem = window.localStorage.getItem(key);\nreturn item ? JSON.parse(item) : initialValue;\n}\n \ncatch {\nreturn initialValue;\n}\n});\nconst\n \nsetValue = (value) => {\n\nsetStoredValue(value);\nif (typeof window !== 'undefined') {\nlocalStorage.setItem(key, JSON.stringify(value));\n}\n};\nreturn [storedValue, setValue];\n}\n\nn\n \nReal Life: Next.js app mein theme preference localStorage mein save karna — SSR check nahi kiya toh build\ntime crash.\n\nSECTION 8: React 19 – Actions & Forms"
+  },
+  {
+    "id": 33,
+    "question": "React 19 mein form `action` prop kya accept karta hai?",
+    "options": [
+      "Sirf string URL",
+      "String URL ya async function dono",
+      "Sirf POST method ke saath",
+      "Sirf Server Components mein"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein form ka action prop ek async function accept karta hai (Server Action ya client function). React\nautomatically form data pass karta hai aur pending state handle karta hai.\n\n// React\n \n19 — function as action\n \nn\n\nasync\n \nfunction handleSubmit(formData)\n \n{\n'use\n \nserver'; // Server Action\nconst\n \nname = formData.get('name');\nawait\n \nsaveUser(name);\n}\n<form\n \naction={handleSubmit}>\n<input name=\"name\" />\n<button type=\"submit\">Save</button>\n</form>\n// Client\n \nside bhi kaam karta hai\nasync\n \nfunction clientAction(formData)\n \n{\nconst\n \ndata = Object.fromEntries(formData);\nawait\n \nfetch('/api/save', { method: 'POST', body: JSON.stringify(data)\n \n});\n}\n\nn\n \nReal Life: Contact form submit karna — action mein async function dao, React pending state manage karega\nautomatically."
+  },
+  {
+    "id": 34,
+    "question": "`useActionState` hook (React 19) kya karta hai?",
+    "options": [
+      "useState ka replacement hai",
+      "Form action ke state, error, aur pending ko manage karta hai",
+      "Redux actions handle karta hai",
+      "Sirf server mein use hota hai"
+    ],
+    "answer": "B",
+    "explanation": "useActionState (pehle useFormState tha) form action ka result state, error state aur pending state ek saath\nmanage karta hai. Yeh React 19 ka key form hook hai.\n\nimport {\n \nuseActionState } from 'react';\nasync\n \nfunction submitForm(prevState, formData) {\nconst\n \nname = formData.get('name');\nif (!name) return { error: 'Name required' };\nawait\n \nsaveUser(name);\nreturn {\n \nsuccess: true };\n}\nfunction\n \nContactForm() {\nconst\n \n[state, action, isPending] = useActionState(\nsubmitForm,\n{\n \nerror:\n \nnull, success: false } // Initial state\n);\nreturn (\n<form\n \naction={action}>\n<input name=\"name\" />\n{state.error && <p className=\"error\">{state.error}</p>}\n{state.success && <p>Saved!</p>}\n<button disabled={isPending}>\n{isPending ? 'Saving...' : 'Save'}\n</button>\n</form>\n);\n}\n\nn\n \nReal Life: Registration form — validation errors dikhao, loading state handle karo, success message show\nkaro — sab ek hook mein."
+  },
+  {
+    "id": 35,
+    "question": "React 19 mein Server Actions ko client component mein kaise use karte hain?",
+    "options": [
+      "Direct import se",
+      "Props ke through pass karke ya module import se",
+      "Sirf server components mein possible hai",
+      "fetch() se call karo"
+    ],
+    "answer": "B",
+    "explanation": "Server Actions ko client components mein props ke through ya direct import se use kar sakte hain. 'use server'\ndirective function ke top mein lagao.\n\n// actions.js\n'use\n \nserver';\nexport async function deleteUser(id) {\nawait\n \ndb.users.delete(id);\nrevalidatePath('/users');\n}\n// ClientComponent.jsx\n'use\n \nclient';\nimport {\n \ndeleteUser } from './actions';\n\nfunction\n \nUserCard({ user }) {\nreturn (\n<div>\n<p>{user.name}</p>\n<form\n \naction={deleteUser.bind(null, user.id)}>\n<button type=\"submit\">Delete</button>\n</form>\n</div>\n);\n}\n\nn\n \nReal Life: Next.js app mein user delete karna — Server Action se DB directly access karo, API route banane ki\nzaroorat nahi.\n\nSECTION 9: React.memo, Lazy Loading & Suspense"
+  },
+  {
+    "id": 36,
+    "question": "`React.memo` kya karta hai?",
+    "options": [
+      "useMemo jaisa hai, values memoize karta hai",
+      "Component ko wrap karta hai — sirf tab re-render karta hai jab props change hoo",
+      "Component ko lazy load karta hai",
+      "Component ki state memoize karta hai"
+    ],
+    "answer": "B",
+    "explanation": "React.memo Higher-Order Component hai jo component ko shallow prop comparison se re-render optimize karta\nhai. Agar parent re-render ho lekin props same hon toh child re-render skip karta hai.\n\n// Bina memo — har parent render pe re-render\n \nhoga\nfunction\n \nExpensiveChild({ name, onClick\n \n}) {\nconsole.log('Child rendered');\nreturn <button onClick={onClick}>{name}</button>;\n}\n// Memo ke saath — sirf props change hone\n \npar\n \nre-render\nconst\n \nExpensiveChild = React.memo(function({ name,\n \nonClick\n \n})\n \n{\nconsole.log('Child rendered');\nreturn <button onClick={onClick}>{name}</button>;\n});\n// Custom\n \ncomparison bhi de sakte ho\nconst\n \nComp = React.memo(Component, (prevProps, nextProps)\n \n=>\n \n{\nreturn prevProps.id === nextProps.id;\n \n// true\n \n=\n \nre-render\n \nskip\n});\n\nn\n \nReal Life: Data table mein rows — parent filter change kare lekin individual row ka data same ho, toh re-render\nskip karo."
+  },
+  {
+    "id": 37,
+    "question": "`React.lazy()` aur `Suspense` saath kaise kaam karte hain?",
+    "options": [
+      "React.lazy() immediately component load karta hai",
+      "React.lazy() dynamic import se component late load karta hai, Suspense fallback dikhata hai loading mei",
+      "Suspense error handling ke liye hai",
+      "Dono sirf SSR mein kaam karte hain"
+    ],
+    "answer": "B",
+    "explanation": "React.lazy() code splitting enable karta hai — component sirf tab load hota hai jab zaroorat ho. Suspense loading\nke dauran fallback UI dikhata hai.\n\nimport {\n \nlazy, Suspense } from 'react';\n// Component sirf tab load hoga jab render hoga\nconst\n \nDashboard = lazy(() => import('./Dashboard'));\nconst\n \nSettings = lazy(() => import('./Settings'));\nfunction\n \nApp() {\nreturn (\n<Suspense\n \nfallback={<div>Loading...</div>}>\n{currentPage === 'dashboard'\n?\n \n<Dashboard />\n:\n \n<Settings />\n}\n</Suspense>\n);\n}\n\nn\n \nReal Life: Admin panel — Dashboard, Reports, Settings — sab alag chunks. User sirf Dashboard kholta hai\ntoh Settings ka code download nahi hoga. Bundle size kam."
+  },
+  {
+    "id": 38,
+    "question": "`Suspense` nested karne ka kya faida hai?",
+    "options": [
+      "Koi faida nahi",
+      "Different loading boundaries set kar sakte ho — different parts ke alag fallbacks",
+      "Performance improve hoti hai automatically",
+      "Error boundary ka kaam karta hai"
+    ],
+    "answer": "B",
+    "explanation": "Nested Suspense se different loading granularity milti hai. Header jaldi load ho, sidebar baad mein — dono ke alag\nloading spinners ho sakte hain.\n\n<Suspense\n \nfallback={<AppShell />}> {/* Outer */}\n<Header /> {/* Fast load */}\n<Suspense\n \nfallback={<SidebarSkeleton />}>\n \n{/*\n \nInner\n \n*/}\n<Sidebar\n \n/> {/* Slow load */}\n</Suspense>\n<Suspense\n \nfallback={<ContentSkeleton />}>\n<MainContent /> {/* Slowest */}\n</Suspense>\n</Suspense>\n// Har section apna skeleton dikhata hai\n// User header turant dekhta hai\n\nn\n \nReal Life: News app — navbar turant dikhe, featured articles 1 sec mein, recommended articles 3 sec mein —\nalag alag skeletons."
+  },
+  {
+    "id": 39,
+    "question": "`ErrorBoundary` Suspense ke saath kab use karte hain?",
+    "options": [
+      "Kabhi nahi",
+      "Jab lazy component load fail ho ya data fetch fail ho — error catch karne ke liye",
+      "Sirf development mei",
+      "Automatic hota hai"
+    ],
+    "answer": "B",
+    "explanation": "Suspense loading handle karta hai, ErrorBoundary failure handle karta hai. Dono saath use karo — load fail hone\nya data error aane par user-friendly message dikhao.\n\nclass\n \nErrorBoundary extends Component\n \n{\nstate\n \n= {\n \nhasError: false };\nstatic getDerivedStateFromError() {\nreturn {\n \nhasError: true };\n}\nrender()\n \n{\nif (this.state.hasError)\nreturn <p>Kuch problem aayi! Retry karo.</p>;\nreturn this.props.children;\n}\n}\n<ErrorBoundary>\n<Suspense\n \nfallback={<Spinner />}>\n<LazyDashboard />\n</Suspense>\n</ErrorBoundary>\n\nn\n \nReal Life: Network offline hone par lazy component load fail ho — ErrorBoundary se friendly message dikhao,\nblank screen nahi."
+  },
+  {
+    "id": 40,
+    "question": "React 19 mein `use(promise)` Suspense ke saath kaise kaam karta hai?",
+    "options": [
+      "Promise manually resolve karna padhta hai",
+      "use() promise pending mein Suspense fallback dikhata hai, resolve hone par data milta hai",
+      "Sirf rejected promises handle karta hai",
+      "use() Suspense ke bina kaam karta hai"
+    ],
+    "answer": "B",
+    "explanation": "use(promise) call karo — jab tak promise pending hai Suspense fallback dikhega. Resolve hone par component\nrender hoga data ke saath. Reject hone par ErrorBoundary catch karega.\n\n// Data fetch function (Server Component ya\n \nparent\n \nmein)\nconst\n \nuserPromise = fetch('/api/user').then(r\n \n=> r.json());\n// Client\n \nComponent\nfunction\n \nUserProfile({ userPromise })\n \n{\nconst\n \nuser = use(userPromise); // Suspends until resolved\nreturn <h1>Hello, {user.name}!</h1>;\n}\n// Parent\n \nwrap karo\n<ErrorBoundary>\n<Suspense\n \nfallback={<ProfileSkeleton />}>\n\n<UserProfile userPromise={userPromise} />\n</Suspense>\n</ErrorBoundary>\n\nn\n \nReal Life: Profile page load karna — skeleton dikhao jab tak data aaye, error page dikhao agar API fail ho.\n\nSECTION 10: React Performance Optimization"
+  },
+  {
+    "id": 41,
+    "question": "React mein unnecessary re-renders kab hote hain?",
+    "options": [
+      "Sirf state change hone par",
+      "State ya props change hone par, ya parent re-render hone par (even if props same hoon)",
+      "Sirf user interaction par",
+      "Sirf useEffect mein"
+    ],
+    "answer": "B",
+    "explanation": "By default React mein parent re-render hone par saare children re-render hote hain, chahe unke props same hoon\nya nahi. React.memo, useMemo, useCallback se optimize karo.\n\n// Problem — Parent state badli, Child bhi re-render\n \nhoga\nfunction\n \nParent() {\nconst\n \n[count, setCount] = useState(0);\nreturn (\n<>\n<button onClick={() => setCount(c => c + 1)}>Count:\n \n{count}</button>\n<Child />\n \n{/* Count se related nahi, par re-render\n \nhoga\n \n*/}\n</>\n);\n}\n// Solution\n \nn\n\nconst\n \nChild = React.memo(function Child()\n \n{\nreturn <div>I don't change!</div>;\n});\n\nn\n \nReal Life: Dashboard mein notifications badge update hone par pura dashboard re-render na ho —\nReact.memo use karo expensive components ke liye."
+  },
+  {
+    "id": 42,
+    "question": "React DevTools mein performance profiling kaise karte hain?",
+    "options": [
+      "console.log use karo",
+      "React DevTools ke Profiler tab mein Record karo aur flame graph dekho",
+      "Chrome Performance tab sirf",
+      "useEffect mein Date.now() lagao"
+    ],
+    "answer": "B",
+    "explanation": "React DevTools Profiler exactly batata hai kaunsa component kitna time le raha hai render mein. Flame graph\nmein wide bars = slow components.\n\n// Code mein bhi Profiler wrap kar sakte ho\nimport {\n \nProfiler } from 'react';\nfunction\n \nonRender(id, phase, actualDuration) {\n\nconsole.log(`${id} ${phase} took ${actualDuration}ms`);\n}\n<Profiler\n \nid=\"Dashboard\" onRender={onRender}>\n<Dashboard />\n</Profiler>\n// Browser DevTools mein:\n// React\n \nDevTools > Profiler > Record\n \n>\n \nInteract >\n \nStop\n// Flame\n \ngraph mein slow components identify karo\n\nn\n \nReal Life: App slow lagti hai — Profiler se exact bottleneck dhoondho, guess mat karo. Often ek expensive\ncomponent hoti hai."
+  },
+  {
+    "id": 43,
+    "question": "`key` prop ka React performance mein kya role hai?",
+    "options": [
+      "Sirf CSS ke liye",
+      "React ko batata hai ki element same hai ya naya — reconciliation optimize karta hai",
+      "Accessibility ke liye",
+      "Debugging ke liye sirf"
+    ],
+    "answer": "B",
+    "explanation": "key prop React reconciler ko batata hai kaunsa element kaunsa hai. Wrong key ya index as key use karne se bugs\naur performance issues aa sakte hain.\n\n// Galat\n \n— index as key (reordering pe bugs)\n{items.map((item, index) => (\n<Item\n \nkey={index} data={item} /> // Bug\n \nprone\n))}\n// Sahi —\n \nstable unique ID\n \nn\n\n{items.map(item => (\n<Item\n \nkey={item.id} data={item} />\n))}\n// Key component reset karne ke liye bhi use hota\n \nhai\n// Yeh trick component ko completely re-create karta\n \nhai\n<UserProfile key={userId} userId={userId}\n \n/>\n\nn\n \nReal Life: Todo list mein item delete karo — index key use karne se animation aur input state galat element\nmein shift ho jaati hai."
+  },
+  {
+    "id": 44,
+    "question": "React 19 mein React Compiler kya karta hai?",
+    "options": [
+      "JSX ko TypeScript mein compile karta hai",
+      "Automatically memoization add karta hai — useMemo/useCallback manually likhne ki zaroorat kam ho jaati hai",
+      "Server-side code compile karta hai",
+      "Bundle size optimize karta hai"
+    ],
+    "answer": "B",
+    "explanation": "React Compiler (pehle React Forget tha) code analyze karke automatically memoization add karta hai. Aapko har\njagah useMemo/useCallback nahi likhna padega — compiler sahi jagah pe khud lagata hai.\n\n// React\n \nCompiler ke bina — manually optimize\nconst\n \nexpensiveValue = useMemo(() => compute(a,\n \nb),\n \n[a,\n \nb]);\nconst\n \nstableHandler = useCallback(() =>\n \nhandle(id),\n \n[id]);\n// React\n \nCompiler ke saath — compiler\n \nyeh\n \nkaam khud\n \nkarta\n \nhai\n// Normal\n \ncode likho, compiler optimize\n \nkarega:\nconst\n \nexpensiveValue = compute(a, b);\n \n// Compiler\n \nmemoize\n \nkarega\nconst\n \nstableHandler = () => handle(id);\n \n// Compiler\n \nstable\n \nreference\n \ndega\n\nn\n \nReal Life: React 19 + Compiler use karne wale codebases mein boilerplate memoization code significantly\nkam ho gaya."
+  },
+  {
+    "id": 45,
+    "question": "Virtualization kab use karni chahiye React mein?",
+    "options": [
+      "Har list ke liye",
+      "Jab list mein 100+ items hon jinhe sab ek saath render karna performance issue create kare",
+      "Sirf tables ke liye",
+      "Sirf mobile apps mein"
+    ],
+    "answer": "B",
+    "explanation": "Virtualization sirf visible items DOM mein rakhta hai — 10,000 items mein se sirf 20 screen par dikhte hain, 20 hi\nDOM mein honge. react-window ya react-virtual use karo.\n\nimport {\n \nFixedSizeList } from 'react-window';\nfunction\n \nRow({ index, style }) {\nreturn (\n<div\n \nstyle={style}>\nItem\n \n#{index} — {data[index].name}\n</div>\n);\n}\nfunction\n \nLargeList() {\nreturn (\n<FixedSizeList\nheight={600} // Container height\nitemCount={10000}\nitemSize={50} // Har row ki height\nwidth=\"100%\"\n>\n{Row}\n</FixedSizeList>\n);\n}\n\nn\n \nReal Life: Gmail jaisi app mein 5000 emails list — virtualization ke bina page freeze ho jaata, saath mein\nsmooth scroll.\n\nSECTION 11: Context API – Deep Dive"
+  },
+  {
+    "id": 46,
+    "question": "Context API kab use karni chahiye aur kab nahi?",
+    "options": [
+      "Hamesha use karo state ke liye",
+      "Global ya widely shared state ke liye (theme, auth, language) — local state ke liye useState prefer karo",
+      "Sirf performance ke liye",
+      "Redux ki jagah hamesha"
+    ],
+    "answer": "B",
+    "explanation": "Context genuinely global data ke liye hai — theme, user auth, language/locale. Prop drilling avoid karna zaroori ho\ntab use karo. Performance-sensitive data ke liye Zustand/Redux consider karo.\n\n// Good use case — Auth Context\nconst\n \nAuthContext = createContext(null);\nfunction\n \nAuthProvider({ children }) {\nconst\n \n[user, setUser] = useState(null);\nconst\n \nlogin = async (credentials) => {\nconst\n \nu =\n \nawait loginApi(credentials);\nsetUser(u);\n};\nreturn (\n<AuthContext value={{ user, login, logout\n \n}}>\n{children}\n</AuthContext>\n);\n}\n// Bad use case — local form state\n// Form state context mein mat daalo — useState\n \nuse\n \nkaro\n\nn\n \nReal Life: Nav bar, sidebar, page header — sab mein logged-in user ka naam dikhana. Auth context perfect\nuse case."
+  },
+  {
+    "id": 47,
+    "question": "Context mein value object hone par performance optimize kaise karte hain?",
+    "options": [
+      "Koi optimization needed nahi",
+      "useMemo se context value memoize karo taaki unnecessary re-renders na ho",
+      "useCallback use karo",
+      "Context split karo sirf"
+    ],
+    "answer": "B",
+    "explanation": "Agar context value object hai aur provider ka parent re-render hota hai, toh har baar naya object banta hai. Saare\nconsumers re-render honge. useMemo se object stabilize karo.\n\nfunction\n \nUserProvider({ children }) {\nconst\n \n[user, setUser] = useState(null);\nconst\n \n[preferences, setPreferences] =\n \nuseState({});\n// useMemo se object stable rakho\nconst\n \nvalue = useMemo(() => ({\nuser,\npreferences,\nupdateUser: setUser,\nupdatePrefs: setPreferences\n}), [user, preferences]);\n\nreturn (\n<UserContext value={value}>\n{children}\n</UserContext>\n);\n}\n\nn\n \nReal Life: Frequent re-renders avoid karne ke liye — user preferences update hone par sirf relevant\nconsumers re-render hoon."
+  },
+  {
+    "id": 48,
+    "question": "Context split karne ka kya faida hai?",
+    "options": [
+      "Koi faida nahi",
+      "Different update frequencies alag karne se unnecessary re-renders kam hote hai",
+      "Code complicated ho jaata hai",
+      "Sirf large apps mein useful hai"
+    ],
+    "answer": "B",
+    "explanation": "Ek bade context mein agar koi ek value change ho toh saare consumers re-render karte hain. Context split karne\nse sirf related consumers re-render hote hain.\n\n// Galat\n \n— ek bada context\nconst\n \nAppContext = createContext({ user, theme,\n \ncart,\n \nlanguage\n \n});\n// Sahi —\n \nsplit contexts\n \nn\n\nconst\n \nUserContext = createContext(null);\nconst\n \nThemeContext = createContext('light');\nconst\n \nCartContext = createContext([]);\n// Cart update hone par sirf CartContext consumers\n \nre-render\n \nhonge\n// Theme\n \naur User consumers affect nahi\n \nhonge\n\nn\n \nReal Life: Theme change aur cart update alag-alag — theme consumers aur cart consumers independently\nupdate hon.\n\nSECTION 12: Portals & Error Boundaries"
+  },
+  {
+    "id": 49,
+    "question": "`ReactDOM.createPortal` kab use karte hain?",
+    "options": [
+      "Sirf performance ke liye",
+      "Jab component ko DOM hierarchy se bahar render karna ho (modals, tooltips, dropdowns)",
+      "Server rendering ke liye",
+      "Lazy loading ke liye"
+    ],
+    "answer": "B",
+    "explanation": "Portal component ko parent DOM ke bahar render karta hai. Modal/tooltip/dropdown ko body ke direct child mein\nrender karo taaki z-index aur overflow:hidden issues na aayein.\n\nimport {\n \ncreatePortal } from 'react-dom';\nfunction\n \nModal({ isOpen, children, onClose })\n \n{\nif (!isOpen) return null;\n\nreturn createPortal(\n<div\n \nclassName=\"modal-overlay\" onClick={onClose}>\n<div\n \nclassName=\"modal-content\" onClick={e\n \n=> e.stopPropagation()}>\n{children}\n</div>\n</div>,\ndocument.body // DOM mein #root ke bahar,\n \nbody mein\n \nrender\n);\n}\n// Use karo normally\n<Modal isOpen={showModal} onClose={()\n \n=> setShowModal(false)}>\n<h2>Hello\n \nfrom Portal!</h2>\n</Modal>\n\nn\n \nReal Life: Table ke andar dropdown menu — bina portal overflow:hidden se clip ho jaata, portal se body mein\nrender karo."
+  },
+  {
+    "id": 50,
+    "question": "Error Boundary class component kyun hona chahiye, function component nahi?",
+    "options": [
+      "Function components better hain",
+      "getDerivedStateFromError aur componentDidCatch abhi tak sirf class components mein available hai",
+      "Hooks error boundaries support karte hai",
+      "Performance ke liye"
+    ],
+    "answer": "B",
+    "explanation": "React 18/19 mein abhi bhi Error Boundary sirf class components se banate hain kyunki getDerivedStateFromError\nlifecycle sirf class mein hai. React team future mein hook-based solution la sakti hai.\n\nclass\n \nErrorBoundary extends React.Component\n \n{\nconstructor(props) {\nsuper(props);\nthis.state = { hasError: false, error: null\n \n};\n}\nstatic getDerivedStateFromError(error) {\nreturn {\n \nhasError: true, error };\n}\ncomponentDidCatch(error, errorInfo) {\n// Error\n \nlogging service mein bhejo\nlogErrorToService(error, errorInfo);\n}\nrender()\n \n{\nif (this.state.hasError) {\nreturn <ErrorFallback error={this.state.error} />;\n}\nreturn this.props.children;\n}\n}\n\nn\n \nReal Life: Payment gateway component crash ho — Error Boundary se graceful fallback dikhao, puri app\ncrash na ho.\n\nSECTION 13: React 19 Asset Loading APIs"
+  },
+  {
+    "id": 51,
+    "question": "React 19 mein `preload` aur `preinit` kya hain?",
+    "options": [
+      "CSS frameworks hain",
+      "Browser ko resources preload karne ke hints dene ke liye React 19 ke naye APIs hai",
+      "Lazy loading APIs hai",
+      "Image optimization ke liye"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein resource loading APIs aaye hain — preload, preinit, prefetchDNS etc. Yeh browser ko pehle se\nresources fetch karne ke liye keh sakte hain.\n\nimport {\n \npreload, preinit } from 'react-dom';\nfunction\n \nApp() {\npreinit('https://example.com/script.js', {\nas: 'script' // Script preload + execute\n});\npreload('https://fonts.googleapis.com/css2?family=Inter',\n \n{\nas: 'style' // CSS preload (execute nahi)\n});\npreload('/api/user-data', {\nas: 'fetch' // API data prefetch\n});\nreturn <Dashboard />;\n}\n\nn\n \nReal Life: App ke critical resources pehle se load karo — fonts, scripts — page LCP (Largest Contentful Paint)\nimprove hoti hai."
+  },
+  {
+    "id": 52,
+    "question": "React 19 mein title, meta aur link tags component mein kaise manage karte hain?",
+    "options": [
+      "Sirf index.html mein likhte hain",
+      "React 19 mein directly component mein likhne par React automatically document head mein move karta hai",
+      "react-helmet library zaroori hai",
+      "Next.js sirf yeh kar sakta hai"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein Document Metadata Support aaya. Aap component ke andar , etc. likh sakte ho — React khud inhe\nmein move kar dega. react-helmet ki zaroorat nahi.\n\n// React\n \n19\n \nn\n \n— react-helmet nahi chahiye\nfunction\n \nBlogPost({ post }) {\nreturn (\n<article>\n<title>{post.title} | My Blog</title>\n<meta\n \nname=\"description\" content={post.excerpt}\n \n/>\n<meta\n \nproperty=\"og:image\" content={post.image} />\n\n<link\n \nrel=\"canonical\" href={`/blog/${post.slug}`}\n \n/>\n<h1>{post.title}</h1>\n<p>{post.content}</p>\n</article>\n);\n}\n// React\n \nyeh sab automatically <head>\n \nmein daal\n \ndega\n\nn\n \nReal Life: SEO ke liye dynamic page titles — har blog post ka alag title aur description, React manage karega.\n\nSECTION 14: Hooks Rules & Common Patterns"
+  },
+  {
+    "id": 53,
+    "question": "Hooks ke bare mein kaunsa rule sabse important hai?",
+    "options": [
+      "Hooks sirf class components mein use karo",
+      "Hooks ko conditionally ya loops mein call mat karo — hamesha top level par call karo",
+      "Ek component mein sirf 3 hooks use karo",
+      "Hooks ko export karna zaroori hai"
+    ],
+    "answer": "B",
+    "explanation": "React hooks ke call order par depend karta hai state track karne ke liye. Agar conditional mein hook call karo toh\norder change ho sakta hai aur React state galat component se associate karega.\n\n// GALAT\n \n7\n\nfunction\n \nComponent({ showData }) {\nif (showData) {\nconst\n \n[data, setData] = useState(null);\n \n// Conditional!\n \nBug!\n}\nuseEffect(() => {}, []); // Is effect\n \nki ordering\n \nab\n \nunreliable\n \nhai\n}\n// SAHI\n \nn\n\nfunction\n \nComponent({ showData }) {\nconst\n \n[data, setData] = useState(null);\n \n// Hamesha\n \ncall\nuseEffect(() => {\nif (!showData) return; // Logic andar\n}, [showData]);\nif (!showData) return null; // Rendering conditional\n}\n\nn\n \nReal Life: ESlint eslint-plugin-react-hooks yeh automatically catch karta hai — project mein zaroor lagao."
+  },
+  {
+    "id": 54,
+    "question": "Kya hooks ko nested functions ya callbacks mein call kar sakte hain?",
+    "options": [
+      "Haan, koi problem nahi",
+      "Nahi — hooks sirf function component ke top level mein ya custom hooks mein call hone chahiye",
+      "Sirf useEffect ke andar",
+      "Sirf async functions mein"
+    ],
+    "answer": "B",
+    "explanation": "Hooks component ke direct body mein call karo — event handlers, timeouts, nested functions mein nahi. React ka\nrules of hooks yahi kehta hai.\n\n// GALAT\n \n7\n\nfunction\n \nComponent() {\nconst\n \nhandleClick = () => {\nconst\n \n[count, setCount] = useState(0); //\n \nHooks\n \nin\n \nevent\n \nhandler!\n};\nsetTimeout(() => {\nuseEffect(() => {}); // Hooks in setTimeout!\n}, 1000);\n}\n// SAHI\n \nn\n\nfunction\n \nComponent() {\nconst\n \n[count, setCount] = useState(0); //\n \nTop\n \nlevel\nuseEffect(() => {\n// Logic\n \nyahan, hook nahi\nconst\n \ntimer = setTimeout(() => setCount(c\n \n=> c + 1),\n \n1000);\nreturn ()\n \n=> clearTimeout(timer);\n}, []);\n}\n\nn\n \nReal Life: ESLint immediately yeh error detect karta hai — 'Rules of Hooks' violation."
+  },
+  {
+    "id": 55,
+    "question": "`useEffect` mein missing dependency warning kab aati hai?",
+    "options": [
+      "Jab dependency array empty ho",
+      "Jab effect ke andar use ki gayi values dependency array mein listed na hoo",
+      "Jab async function use karo",
+      "Jab cleanup function na ho"
+    ],
+    "answer": "B",
+    "explanation": "React Hook mein jo bhi values use kar rahe ho (state, props, functions) sab dependency array mein honi chahiye.\nWarna stale closure bug aa sakta hai — effect purani value use karega.\n\n// Warning — userId dependency missing\nuseEffect(() => {\nfetchUser(userId); // userId dependency\n \narray\n \nmein\n \nnahi\n}, []); // Warning: 'userId' missing from\n \ndeps\n// Sahi\n \nn\n\nuseEffect(() => {\nfetchUser(userId);\n}, [userId]); // userId add kiya\n// Functions ke liye — useCallback se\n \nstabilize\n \nkaro\nconst\n \nfetchUser = useCallback(async () =>\n \n{\nconst\n \ndata = await api.getUser(userId);\nsetUser(data);\n}, [userId]);\nuseEffect(() => {\nfetchUser();\n}, [fetchUser]); // Stable reference\n\nn\n \nReal Life: User ID change hone par user data refetch nahi hua — missing dependency bug, ek common React\nbug."
+  },
+  {
+    "id": 56,
+    "question": "`useLayoutEffect` aur `useEffect` mein kya fark hai?",
+    "options": [
+      "Koi fark nahi",
+      "useLayoutEffect DOM update ke baad lekin browser paint se pehle synchronously chalta hai",
+      "useLayoutEffect server pe bhi chalta hai",
+      "useLayoutEffect cleanup support nahi karta"
+    ],
+    "answer": "B",
+    "explanation": "useLayoutEffect DOM mutations ke baad synchronously fire hota hai — browser kuch bhi screen par paint karne\nse pehle. Isse visual flickering avoid hoti hai DOM measurements ke case mein.\n\n// useEffect — paint ke BAAD (async)\nuseEffect(() => {\n// Screen\n \nalready paint ho chuki hai\nelement.style.color = 'red'; // Flicker\n \ndikh sakta\n \nhai\n}, []);\n// useLayoutEffect — paint se PEHLE (sync)\n \nn\n\nuseLayoutEffect(() => {\n// Paint\n \nse pehle DOM measure/modify karo\nconst\n \nheight = element.getBoundingClientRect().height;\nsetHeight(height); // No flicker\n}, []);\n\nn\n \nReal Life: Tooltip position calculate karna — element ki height measure karo paint se pehle, warna tooltip flash\nkarega galat jagah pe.\n\nSECTION 15: Advanced Patterns & Misc Concepts"
+  },
+  {
+    "id": 57,
+    "question": "Render Props pattern kya hai?",
+    "options": [
+      "Component ka default rendering",
+      "Ek technique jahan component ek function prop accept karta hai jo render karne ki responsibility deta hai",
+      "Server-side rendering",
+      "Redux ka pattern"
+    ],
+    "answer": "B",
+    "explanation": "Render Props ek pattern hai jahan component ek function prop (usually children ya render) lete hain. Yeh logic\nshare karne ka purana tarika hai — custom hooks ne isse mostly replace kar diya.\n\n// Render\n \nProps pattern\nfunction\n \nMouseTracker({ render }) {\nconst\n \n[position, setPosition] = useState({ x:\n \n0, y:\n \n0\n \n});\nreturn (\n<div\n \nonMouseMove={e => setPosition({ x:\n \ne.clientX,\n \ny:\n \ne.clientY\n \n})}>\n{render(position)} {/* Function call karke render\n \nkaro\n \n*/}\n</div>\n);\n\n}\n// Use\n<MouseTracker render={({ x, y }) => (\n<p>Mouse\n \nposition: {x}, {y}</p>\n)} />\n// Modern\n \nequivalent — custom hook\nconst\n \nposition = useMousePosition(); //\n \nCleaner!\n\nn\n \nReal Life: Purani libraries (React Router v4, React Motion) render props use karti thi — ab mostly hooks\npreferred hain."
+  },
+  {
+    "id": 58,
+    "question": "Compound Component pattern kya hota hai?",
+    "options": [
+      "Multiple files mein component banana",
+      "Parent component ki state share karne wale related components ka set — Context use karke",
+      "HOC ka dusra naam",
+      "Component inheritance"
+    ],
+    "answer": "B",
+    "explanation": "Compound\n \nComponents\n \nrelated\n \ncomponents\n \nka\n \ngroup\n \nhote\n \nhain\n \njo\n \ninternally\n \nContext\n \nshare\n \nkarte\n \nhain.\nSelect/Option, Tabs/Tab, Accordion/AccordionItem jaisi UI components is pattern se banti hain.\n\nconst\n \nTabContext = createContext();\nfunction\n \nTabs({ children, defaultTab })\n \n{\nconst\n \n[activeTab, setActiveTab] = useState(defaultTab);\nreturn (\n<TabContext value={{ activeTab, setActiveTab }}>\n{children}\n</TabContext>\n);\n}\nfunction\n \nTab({ id, children }) {\nconst\n \n{ activeTab, setActiveTab } = use(TabContext);\nreturn (\n<button\nonClick={() => setActiveTab(id)}\nclassName={activeTab === id ? 'active' : ''}\n>{children}</button>\n);\n}\n// Usage\n \n— Flexible!\n<Tabs\n \ndefaultTab=\"home\">\n<Tab\n \nid=\"home\">Home</Tab>\n<Tab\n \nid=\"profile\">Profile</Tab>\n</Tabs>\n\nn\n \nReal Life: Custom Tab component library — Headless UI, Radix UI yahi pattern use karte hain."
+  },
+  {
+    "id": 59,
+    "question": "Higher-Order Component (HOC) kya hai?",
+    "options": [
+      "Sirf class components ke liye",
+      "Ek function jo component le aur enhanced component return kare",
+      "kya hai? A) Sirf class components ke liye n B) Ek function jo component le aur enhanced component return kare C) React Router ka feature",
+      "Performance tool"
+    ],
+    "answer": "B",
+    "explanation": "HOC ek function hai jo component input mein leta hai aur naya component return karta hai extra functionality ke\nsaath. Pattern ab purana hai, custom hooks zyada prefer hain.\n\n// HOC —\n \nwithAuth\nfunction\n \nwithAuth(Component) {\nreturn function AuthenticatedComponent(props)\n \n{\nconst\n \n{ user } = useAuth();\nif (!user) return <Redirect to=\"/login\"\n \n/>;\nreturn <Component {...props} user={user} />;\n};\n}\n// Use karo\nconst\n \nProtectedDashboard = withAuth(Dashboard);\nconst\n \nProtectedSettings = withAuth(Settings);\n// Modern\n \nequivalent — custom hook\nfunction\n \nDashboard() {\nconst\n \n{ user } = useAuth();\nif (!user) return <Navigate to=\"/login\"\n \n/>;\nreturn <DashboardContent user={user} />;\n}\n\nn\n \nReal Life: Authentication, logging, analytics — HOC se cross-cutting concerns add karo multiple components\nmein."
+  },
+  {
+    "id": 60,
+    "question": "`React.StrictMode` kya karta hai production mein?",
+    "options": [
+      "Errors double hoti hain",
+      "StrictMode sirf development mein kaam karta hai, production mein koi effect nahi",
+      "Performance improve karta hai",
+      "TypeScript enable karta hai"
+    ],
+    "answer": "B",
+    "explanation": "StrictMode development-only tool hai. Yeh components ko double render karta hai side effects detect karne ke\nliye, deprecated APIs warn karta hai. Production build mein completely inactive hota hai.\n\n// index.js / main.jsx\nroot.render(\n<React.StrictMode>\n<App\n \n/>\n</React.StrictMode>\n);\n// Development mein StrictMode:\n// 1.\n \nComponents 2x render karta hai (side effect\n \nbugs\n \ndhundhne\n \nke\n \nliye)\n// 2.\n \nEffects 2x run karte hain (mount\n \n→\n \nunmount\n \n→\n \nremount)\n// 3.\n \nDeprecated lifecycle methods warn\n \nkarta\n \nhai\n\n// 4.\n \nUnexpected side effects identify karta hai\n// Production mein: Koi difference nahi, zero\n \noverhead\n\nn\n \nReal Life: useEffect cleanup theek se nahi likha — StrictMode double mount karne par bug immediately visible\nho jaata hai."
+  },
+  {
+    "id": 61,
+    "question": "`useDebugValue` kab use karte hain?",
+    "options": [
+      "Console.log ka replacement",
+      "Custom hooks mein — React DevTools mein hook ka debug label dikhane ke liye",
+      "Error handling ke liye",
+      "Performance measure karne ke liye"
+    ],
+    "answer": "B",
+    "explanation": "useDebugValue custom hooks mein use hota hai taaki React DevTools mein hook ka meaningful label dikhe.\nLibrary authors ke liye useful hai.\n\nfunction\n \nuseOnlineStatus() {\nconst\n \n[isOnline, setIsOnline] = useState(navigator.onLine);\nuseDebugValue(isOnline ? '\nn\n \nOnline' : '\nn\n \nOffline');\n// DevTools mein: \"useOnlineStatus:\n \nn\n \nOnline\" dikhhega\nuseEffect(() => {\nconst\n \nhandleOnline = () => setIsOnline(true);\nconst\n \nhandleOffline = () => setIsOnline(false);\nwindow.addEventListener('online', handleOnline);\nwindow.addEventListener('offline', handleOffline);\nreturn ()\n \n=> {\nwindow.removeEventListener('online', handleOnline);\nwindow.removeEventListener('offline',\n \nhandleOffline);\n};\n}, []);\nreturn isOnline;\n}\n\nn\n \nReal Life: NPM package mein custom hook publish karo — users DevTools mein easily debug kar sakein."
+  },
+  {
+    "id": 62,
+    "question": "React mein `key` prop change karne par kya hota hai?",
+    "options": [
+      "Component update hota hai",
+      "Component completely unmount aur re-mount hota hai — fresh state ke saath",
+      "Sirf re-render hota hai",
+      "Koi effect nahi"
+    ],
+    "answer": "B",
+    "explanation": "key change hone par React purana component destroy karta hai aur bilkul naya mount karta hai. Yeh ek deliberate\nreset trick hai — component ki state completely clear ho jaati hai.\n\n// Key trick — component state reset karo\nfunction\n \nUserProfile({ userId }) {\nreturn (\n// userId\n \nchange hone par poori ProfileForm\n \nfresh\n \nho\n \njaayegi\n\n<ProfileForm key={userId} userId={userId}\n \n/>\n);\n}\n// Iske bina — ProfileForm old user ka state hold\n \nkar\n \nsakti\n \nhai\n// Iske baad — naya userId = fresh component = clean\n \nstate\n// Controlled reset button bhi implement kar sakte\n \nho\nconst\n \n[formKey, setFormKey] = useState(0);\n<Form\n \nkey={formKey} />\n<button onClick={() => setFormKey(k => k + 1)}>Reset\n \nForm</button>\n\nn\n \nReal Life: User profile edit karo — ek user se doosre user switch karo, form fields cleanly reset ho jaayein."
+  },
+  {
+    "id": 63,
+    "question": "Controlled vs Uncontrolled components mein kya fark hai?",
+    "options": [
+      "Koi fark nahi",
+      "Controlled — React state form data manage karta hai. Uncontrolled — DOM khud manage karta hai (useRef se access)",
+      "Uncontrolled better performance dete hain hamesha",
+      "Controlled sirf class components mein hote hain"
+    ],
+    "answer": "B",
+    "explanation": "Controlled component mein value prop aur onChange React ko dete ho — React source of truth hai. Uncontrolled\nmein DOM apna state rakhta hai — ref se value read karo.\n\n// Controlled\n \nn\n \n(recommended)\nconst\n \n[name, setName] = useState('');\n<input value={name} onChange={e => setName(e.target.value)}\n \n/>\n// Uncontrolled (kabhi kabhi simple cases\n \nmein ok)\nconst\n \nnameRef = useRef();\n<input ref={nameRef} defaultValue=\"Raj\"\n \n/>\n// nameRef.current.value — submit par\n \nread karo\n// Controlled prefer karo:\n// -\n \nValidation on type\n// -\n \nDependent fields\n// -\n \nDisable button jab form invalid ho\n\nn\n \nReal Life: Signup form — controlled use karo taaki real-time password strength check, field validation, submit\nbutton enable/disable sab kuch possible ho."
+  },
+  {
+    "id": 64,
+    "question": "`defaultProps` React 19 mein kya hua?",
+    "options": [
+      "Still recommended hai",
+      "Function components mein deprecated hai — default parameters use karo",
+      "Completely remove ho gaya",
+      "Sirf TypeScript mein use karo"
+    ],
+    "answer": "B",
+    "explanation": "React\n \n19\n \nmein\n \nfunction\n \ncomponents\n \nke\n \nliye\n \ndefaultProps\n \ndeprecated\n \nmark\n \nkiya\n \ngaya.\n \nJavaScript\n \ndefault\nparameters use karo — cleaner aur idiomatic JS hai.\n\n// Deprecated in React 19\n \n7\n\nfunction\n \nButton({ label, color }) { ...\n \n}\nButton.defaultProps = { color: 'blue', label:\n \n'Click'\n \n};\n// Modern\n \nway\n \nn\n \n— JS default parameters\nfunction\n \nButton({ label = 'Click', color = 'blue',\n \nsize\n \n=\n \n'md'\n \n})\n \n{\nreturn (\n<button style={{ backgroundColor: color\n \n}} className={size}>\n{label}\n</button>\n);\n}\n// TypeScript ke saath\ninterface\n \nProps {\nlabel?: string;\ncolor?: string;\n}\nfunction\n \nButton({ label = 'Click', color = 'blue'\n \n}:\n \nProps)\n \n{\n \n...\n \n}\n\nn\n \nReal Life: Component library mein default props — JavaScript defaults zyada readable hain aur tree-shaking\nfriendly bhi."
+  },
+  {
+    "id": 65,
+    "question": "React mein `reconciliation` kya hai?",
+    "options": [
+      "State management process",
+      "Virtual DOM aur real DOM compare karke minimum changes apply karna",
+      "Server-side rendering process",
+      "Context update karna"
+    ],
+    "answer": "B",
+    "explanation": "Reconciliation React ka algorithm hai — naya Virtual DOM purane se compare karta hai (diffing) aur sirf zaruri\nDOM changes apply karta hai. Yahi React ki efficiency ka secret hai.\n\n// React\n \nVirtual DOM diff karta hai\n// Before:\n<ul>\n<li>Apple</li>\n<li>Banana</li>\n</ul>\n// After\n \nstate change:\n<ul>\n<li>Apple</li>\n<li>Banana</li>\n<li>Cherry</li> // Sirf yeh naya DOM node\n \nadd\n \nhoga\n</ul>\n// Key ka\n \nrole — list reordering mein\n// Bina key — React sab re-render karta\n \nhai\n// Saath\n \nkey — React sirf moved/added\n \nitems\n \nhandle\n \nkarta\n \nhai\n\nn\n \nReal Life: 100 item list mein ek item add karo — reconciliation se sirf ek DOM node add hoga, 100 re-render\nnahi honge."
+  },
+  {
+    "id": 66,
+    "question": "`React.Fragment` kab use karte hain?",
+    "options": [
+      "Sirf performance ke liye",
+      "Multiple elements return karne ke liye bina extra DOM node banaye",
+      "Context provider ki jagah",
+      "Sirf lists mein"
+    ],
+    "answer": "B",
+    "explanation": "JSX mein ek root element return karna zaroori hai. Fragment (<> ya ) se multiple elements wrap kar sakte ho bina\nactual DOM element banaye.\n\n// Galat\n \n— extra div DOM mein add hoti hai\nreturn (\n<div>\n \n{/*\n \nUnnecessary div */}\n<h1>Title</h1>\n<p>Content</p>\n</div>\n);\n// Sahi —\n \nFragment, no extra DOM\n \nn\n\nreturn (\n<>\n<h1>Title</h1>\n<p>Content</p>\n</>\n);\n// Key ke\n \nsaath — full syntax use karo\nreturn (\n<React.Fragment key={item.id}>\n<dt>{item.term}</dt>\n<dd>{item.description}</dd>\n</React.Fragment>\n);\n\nn\n \nReal Life: Table cells — ke andar extra add karna invalid HTML hai, Fragment use karo."
+  },
+  {
+    "id": 67,
+    "question": "React mein `children` prop kya hota hai?",
+    "options": [
+      "Array of components sirf",
+      "Component ke opening aur closing tags ke beech ka content — string, element, array, function kuch bhi ho sakta hai",
+      "Sirf text content",
+      "Props ka subset"
+    ],
+    "answer": "B",
+    "explanation": "children ek special prop hai jo component tags ke beech likha content hota hai. Yeh string, number, JSX element,\narray, ya function ho sakta hai.\n\nfunction\n \nCard({ children, title }) {\nreturn (\n<div\n \nclassName=\"card\">\n<h2>{title}</h2>\n<div\n \nclassName=\"body\">{children}</div>\n</div>\n);\n\n}\n// Different children types\n<Card\n \ntitle=\"Simple\">Hello!</Card> //\n \nString child\n<Card\n \ntitle=\"Complex\">\n<p>Paragraph</p>\n<button>Click</button>\n</Card> // JSX children\n// children ko manipulate karo\nReact.Children.map(children, child =>\nReact.cloneElement(child, { extraProp: true\n \n})\n);\n\nn\n \nReal Life: Layout components (Card, Modal, Sidebar) — children prop se flexible content accept karo."
+  },
+  {
+    "id": 68,
+    "question": "`React.cloneElement` kab use karte hain?",
+    "options": [
+      "Component copy karne ke liye",
+      "Existing element ko clone karke extra props inject karne ke liye",
+      "Component memoize karne ke liye",
+      "Dynamic import ke liye"
+    ],
+    "answer": "B",
+    "explanation": "cloneElement\n \nexisting\n \nReact\n \nelement\n \nka\n \ncopy\n \nbanata\n \nhai\n \nnaye\n \nprops\n \nke\n \nsaath\n \nmerge\n \nkarke.\n \nCompound\ncomponents aur render props patterns mein use hota hai.\n\nfunction\n \nToolbar({ children }) {\nreturn (\n<div\n \nclassName=\"toolbar\">\n{React.Children.map(children, child =>\nReact.cloneElement(child, {\n// Har child button ko theme prop inject karo\ntheme: 'dark',\nsize:\n \n'sm'\n})\n)}\n</div>\n);\n}\n<Toolbar>\n<Button>Save</Button> // theme='dark', size='sm' mil\n \njaayega\n<Button>Cancel</Button> // theme='dark', size='sm'\n \nmil\n \njaayega\n</Toolbar>\n\nn\n \nReal Life: Form component — har child input ko required prop automatically inject karo, har input mein\nmanually likhne ki zaroorat nahi."
+  },
+  {
+    "id": 69,
+    "question": "React mein synthetic events kya hain?",
+    "options": [
+      "Custom DOM events",
+      "React ka cross-browser wrapper native browser events ke upar — consistent API deta hai",
+      "TypeScript events",
+      "Async events"
+    ],
+    "answer": "B",
+    "explanation": "React Synthetic Events native browser events ko wrap karte hain taaki cross-browser consistency mile. React 17+\nmein events document se root element par delegate hote hain.\n\nfunction\n \nForm() {\nfunction\n \nhandleSubmit(e) {\ne.preventDefault(); // Same API cross-browser\ne.stopPropagation();\nconsole.log(e.target); // Form DOM node\nconsole.log(e.nativeEvent); // Original\n \nbrowser\n \nevent\n}\nfunction\n \nhandleClick(e) {\n// e\n \nek SyntheticEvent hai\n// e.type, e.target, e.currentTarget — standard\n \nproperties\nconsole.log(e.type); // 'click'\n}\nreturn <form onSubmit={handleSubmit}><button onClick={handleClick}/></form>;\n}\n\nn\n \nReal Life: Form submit prevent karna — e.preventDefault() cross-browser same kaam karta hai, React handle\nkarta hai."
+  },
+  {
+    "id": 70,
+    "question": "React mein `PropTypes` ka kya role hai?",
+    "options": [
+      "TypeScript ka replacement",
+      "Runtime type checking — development mein props ki type validate karta hai warnings ke saath",
+      "Performance optimizatio",
+      "State type checking"
+    ],
+    "answer": "B",
+    "explanation": "PropTypes development mein props ki type check karta hai. Galat prop type milne par console warning aata hai.\nTypeScript compile-time check karta hai — TypeScript zyada powerful hai.\n\nimport PropTypes from 'prop-types';\nfunction\n \nUserCard({ name, age, isAdmin,\n \nonClick\n \n})\n \n{\nreturn <div onClick={onClick}>{name} ({age})</div>;\n}\nUserCard.propTypes = {\nname:\n \nPropTypes.string.isRequired,\nage:\n \nPropTypes.number,\nisAdmin:\n \nPropTypes.bool,\nonClick:\n \nPropTypes.func\n};\nUserCard.defaultProps = {\nage:\n \n0,\nisAdmin:\n \nfalse\n};\n// TypeScript use kar rahe ho toh PropTypes\n \nki zaroorat\n \nnahi\n\ninterface\n \nProps { name: string; age?:\n \nnumber;\n \n}\n\nn\n \nReal Life: Team mein JavaScript use kar rahe ho — PropTypes se documentation aur runtime safety milti hai\nbina TypeScript ke.\n\nSECTION 16: Popular React Hook Packages"
+  },
+  {
+    "id": 71,
+    "question": "React mein hooks install karne ki zaroorat kab hoti hai?",
+    "options": [
+      "Hamesha npm se install karo",
+      "React ke built-in hooks (useState, useEffect etc.) install nahi karte — react package mein hain. Extra libraries sirf advanced use cases ke liye install karte hain.",
+      "Har project mein react-use install karo",
+      "Hooks alag package mein hain"
+    ],
+    "answer": "B",
+    "explanation": "React ke core hooks (useState, useEffect, useContext, useRef, useMemo, useCallback, useReducer, useId,\nuseTransition etc.) sab react package mein built-in hain. Sirf third-party hooks libraries (react-query, zustand etc.)\ninstall karni padti hain.\n\n// Built-in hooks — install ki zaroorat\n \nnahi\nimport {\n \nuseState, useEffect, useContext,\nuseRef, useMemo, useCallback,\nuseReducer, useId, useTransition,\nuseDeferredValue, useOptimistic,\nuseImperativeHandle, useLayoutEffect,\nuseDebugValue } from 'react';\n// react-dom se (install nahi chahiye\n \nseparately)\nimport {\n \nuseFormStatus } from 'react-dom';\n// Extra\n \nlibraries — install karni padti hain\n// npm install @tanstack/react-query\n// npm install zustand\n// npm install react-hook-form\n\nn\n \nReal Life: Interview mein puchha — 'hooks install karne padte hain?' — Answer: Built-in nahi, third-party\nlibraries haan."
+  },
+  {
+    "id": 72,
+    "question": "`@tanstack/react-query` (React Query) kya problem solve karta hai?",
+    "options": [
+      "State management",
+      "Server state management — data fetching, caching, background refetch, loading/error states automatically",
+      "Form handling",
+      "Routing"
+    ],
+    "answer": "B",
+    "explanation": "React Query server state (API data) manage karta hai. Caching, background sync, loading states, error handling\n— sab automatic. useEffect + useState se manually karna iska kaam zyada tedious hota hai.\n\n// npm install @tanstack/react-query\nimport {\n \nuseQuery, useMutation, useQueryClient } from\n \n'@tanstack/react-query';\nfunction\n \nUsers() {\nconst\n \n{ data, isLoading, error } = useQuery({\nqueryKey:\n \n['users'],\nqueryFn:\n \n() => fetch('/api/users').then(r\n \n=> r.json()),\nstaleTime: 5 * 60 * 1000, // 5 min cache\n});\nif (isLoading) return <Spinner />;\nif (error) return <Error />;\nreturn <UserList users={data} />;\n}\n// useMutation — create/update/delete\n \nke liye\nconst\n \nmutation = useMutation({\nmutationFn: (user) => fetch('/api/users',\n \n{\nmethod: 'POST', body: JSON.stringify(user)\n}),\nonSuccess: () => queryClient.invalidateQueries(['users'])\n});\n\nn\n \nReal Life: E-commerce product list — auto refresh, background sync, pagination, infinite scroll — React Query\nse sab easily milta hai."
+  },
+  {
+    "id": 73,
+    "question": "`Zustand` kya hai aur React Context se kaise alag hai?",
+    "options": [
+      "Context ka dusra naam",
+      "Minimal state management library — Context se simple, Redux se simpler, performance better",
+      "Form management library",
+      "React ka official tool"
+    ],
+    "answer": "B",
+    "explanation": "Zustand ek simple external state management library hai. Context ke unlike aap sirf subscribed state ka part\nchange hone par re-render hote ho — zyada performant. Redux se much less boilerplate.\n\n// npm install zustand\nimport {\n \ncreate } from 'zustand';\nconst\n \nuseCartStore = create((set, get) =>\n \n({\nitems: [],\ntotal: 0,\naddItem:\n \n(item) => set(state => ({\nitems: [...state.items, item],\ntotal: state.total + item.price\n})),\nremoveItem: (id) => set(state => ({\nitems: state.items.filter(i => i.id !==\n \nid)\n})),\n}));\n// Any component mein — no Provider needed!\nfunction\n \nCart() {\n\nconst\n \nitems = useCartStore(state => state.items);\n \n//\n \nSirf\n \nitems\n \npar\n \nsubscribe\nconst\n \naddItem = useCartStore(state =>\n \nstate.addItem);\nreturn <div>{items.length} items</div>;\n}\n\nn\n \nReal Life: Shopping cart global state — Zustand se sirf 20-30 lines mein complete solution, Redux ke 100+\nlines ki jagah."
+  },
+  {
+    "id": 74,
+    "question": "`react-hook-form` kya faida deta hai?",
+    "options": [
+      "Forms ke liye CSS library",
+      "Uncontrolled inputs par based form management — less re-renders, better performance, validation built-i",
+      "Server forms ke liye",
+      "TypeScript forms ke liye sirf"
+    ],
+    "answer": "B",
+    "explanation": "react-hook-form uncontrolled inputs use karta hai — sirf submit par ya specific validation trigger par re-render hota\nhai. Yeh 100 field forms mein bhi fast rahta hai.\n\n// npm install react-hook-form\nimport {\n \nuseForm } from 'react-hook-form';\nfunction\n \nLoginForm() {\nconst\n \n{\nregister,\nhandleSubmit,\nformState: { errors, isSubmitting }\n}\n \n= useForm();\nconst\n \nonSubmit = async (data) => {\nawait\n \nloginUser(data); // data = { email,\n \npassword\n \n}\n};\nreturn (\n<form\n \nonSubmit={handleSubmit(onSubmit)}>\n<input\n{...register('email', {\nrequired:\n \n'Email required',\npattern:\n \n{ value: /^[^\\s]+@[^\\s]+$/i,\n \nmessage: 'Invalid\n \nemail'\n \n}\n})}\n/>\n{errors.email && <p>{errors.email.message}</p>}\n<button disabled={isSubmitting}>Login</button>\n</form>\n);\n}\n\nn\n \nReal Life: Multi-step form wizard — react-hook-form se state, validation, errors sab manage karo efficiently."
+  },
+  {
+    "id": 75,
+    "question": "`SWR` library kya hai?",
+    "options": [
+      "State management library",
+      "Stale-While-Revalidate — data fetching hook library by Vercel, cached data pehle dikhao phir background mein fresh data fetch karo",
+      "CSS-in-JS library",
+      "Testing library"
+    ],
+    "answer": "B",
+    "explanation": "SWR (Stale-While-Revalidate) caching strategy follow karta hai — pehle cached data dikhao (fast), phir network se\nfresh data fetch karo. React Query se simpler API.\n\n// npm install swr\nimport useSWR from 'swr';\nconst\n \nfetcher = (url) => fetch(url).then(r =>\n \nr.json());\nfunction\n \nProfile() {\nconst\n \n{ data, error, isLoading, mutate } = useSWR(\n'/api/user',\nfetcher,\n{\nrefreshInterval: 30000, // 30 sec auto refresh\nrevalidateOnFocus: true // Tab focus par refresh\n}\n);\nif (isLoading) return <Spinner />;\nif (error) return <p>Error!</p>;\nreturn (\n<div>\n<p>{data.name}</p>\n<button onClick={() => mutate()}>Refresh</button>\n</div>\n);\n}\n\nn\n \nReal Life: Dashboard mein live stats — SWR se stale data turant dikhe, background mein fresh data aata\nrahe.\n\nSECTION 17: React 19 – More Deep Dive"
+  },
+  {
+    "id": 76,
+    "question": "React 19 mein `ref` cleanup function kya hai?",
+    "options": [
+      "Possible nahi",
+      "Ref callback se ek function return kar sakte hain jo element DOM se remove hone par call hoga",
+      "useEffect mein ref cleanup likho",
+      "Sirf class components mein"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein ref callbacks ek cleanup function return kar sakte hain — bilkul useEffect ki tarah. Jab component\nunmount ho ya ref change ho, cleanup call hoga.\n\n// React\n \n19 — Ref Cleanup\n \nn\n\nfunction\n \nInput() {\nreturn (\n<input\nref={(node) => {\n\nif (node)\n \n{\n// Mount\n \n— setup karo\nconst\n \nobserver = new ResizeObserver(() =>\n \n{\nconsole.log('Input resized!');\n});\nobserver.observe(node);\n// Cleanup function return karo\n \nn\n \n(React\n \n19 naya!)\nreturn ()\n \n=> {\nobserver.disconnect();\nconsole.log('Cleanup!');\n};\n}\n}}\n/>\n);\n}\n\nn\n \nReal Life: Custom input par ResizeObserver lagao — cleanup function se observer automatically remove hoga\nunmount par."
+  },
+  {
+    "id": 77,
+    "question": "React 19 mein `hydration` errors kaise improve hue hain?",
+    "options": [
+      "Koi improvement nahi",
+      "React 19 better error messages deta hai — exact diff dikhata hai server aur client HTML ka",
+      "Hydration errors ab warnings hai",
+      "Hydration React 19 mein nahi hoti"
+    ],
+    "answer": "B",
+    "explanation": "React 19 hydration errors mein much better diff output deta hai — exactly batata hai kaunsa element server aur\nclient pe different tha. Debugging zyada easy ho gayi.\n\n// React\n \n18 error (confusing):\n// \"Hydration failed because the initial UI\n \ndoes not\n \nmatch\n// what was rendered on the server\"\n// React\n \n19 error (detailed)\n \nn\n:\n// Error:\n \nHydration mismatch\n// Server: <div class=\"light\">\n// Client: <div class=\"dark\">\n// ^^^^^\n \nExact difference!\n// Common\n \nhydration mismatch causes:\n// 1.\n \ntypeof window check nahi kiya\n// 2.\n \nDate.now() ya Math.random() server/client\n \nalag\n// 3.\n \nBrowser extensions HTML modify karte hain\n// 4.\n \nsuppressHydrationWarning prop use\n \nkaro dynamic\n \ncontent\n \nke\n \nliye\n\nn\n \nReal Life: Next.js app mein theme localStorage se read karo — server pe 'light', client pe 'dark' hydration\nmismatch. suppressHydrationWarning lagao."
+  },
+  {
+    "id": 78,
+    "question": "`useOptimistic` mein rollback kaise hota hai?",
+    "options": [
+      "Manually karna padta hai",
+      "Jab async action fail ho toh React automatically original state restore karta hai",
+      "Rollback possible nahi",
+      "useReducer se handle karo"
+    ],
+    "answer": "B",
+    "explanation": "useOptimistic automatic rollback provide karta hai. Jab async operation fail ho, React optimistic state discard karta\nhai aur original state wapas aa jaati hai.\n\nfunction\n \nTodoList({ todos, onAddTodo })\n \n{\nconst\n \n[optimisticTodos, addOptimisticTodo] = useOptimistic(\ntodos,\n(currentTodos, newTodo) => [...currentTodos, newTodo]\n);\nasync\n \nfunction handleAdd(text) {\nconst\n \ntempTodo = { id: 'temp', text, pending:\n \ntrue\n \n};\naddOptimisticTodo(tempTodo); // Turant UI\n \nupdate\ntry {\nawait\n \nsaveTodo(text); // Server call\n// Success — actual data parent se aayegi\n \n(refetch)\n}\n \ncatch (error) {\n// Failure — React automatically optimistic\n \nstate\n \nrollback\n \nkarega!\nalert('Save failed, rolling back...');\n}\n}\nreturn <ul>{optimisticTodos.map(t => <li key={t.id}>{t.text}</li>)}</ul>;\n}\n\nn\n \nReal Life: Todo add karo — network fail ho toh todo disappear ho jaata hai automatically. No manual rollback\ncode needed."
+  },
+  {
+    "id": 79,
+    "question": "React 19 mein `createRoot` mein kya new options aaye?",
+    "options": [
+      "Koi change nahi",
+      "`onCaughtError`, `onUncaughtError`, `onRecoverableError` callbacks aaye hain better error handling ke liye",
+      "createRoot deprecated ho gaya",
+      "Async createRoot"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein createRoot mein error handling callbacks aaye — onCaughtError (ErrorBoundary caught errors),\nonUncaughtError (uncaught errors), onRecoverableError (automatic recovery).\n\nimport {\n \ncreateRoot } from 'react-dom/client';\nconst\n \nroot = createRoot(document.getElementById('root'),\n \n{\nonCaughtError(error, errorInfo) {\n// ErrorBoundary ne catch kiya\nlogToSentry(error, { componentStack: errorInfo.componentStack\n \n});\n},\nonUncaughtError(error, errorInfo) {\n// Kisi ErrorBoundary ne nahi pakda\nshowCrashDialog(error);\nlogCriticalError(error);\n},\n\nonRecoverableError(error) {\n// React\n \nne recover kar liya (hydration\n \nmismatch etc.)\nconsole.warn('Recoverable error:', error);\n}\n});\nroot.render(<App />);\n\nn\n \nReal Life: Production mein Sentry ya LogRocket mein React errors log karna — ab zyada granular control\nmilta hai."
+  },
+  {
+    "id": 80,
+    "question": "React mein `Concurrent Mode` ka React 19 mein kya status hai?",
+    "options": [
+      "Still experimental",
+      "React 18 se default hai, React 19 mein aur mature — createRoot use karne par automatic",
+      "Deprecated ho gaya",
+      "Manual enable karna padhta hai"
+    ],
+    "answer": "B",
+    "explanation": "Concurrent features React 18 mein stable hue, React 19 mein aur improve hue. createRoot use karte hi concurrent\nmode active ho jaata hai — opt-in nahi, default hai.\n\n// React\n \n16/17 (legacy mode)\nReactDOM.render(<App />, root); // No\n \nconcurrent features\n// React\n \n18+ / React 19 (concurrent mode)\n \nn\n\nconst\n \nroot = createRoot(document.getElementById('root'));\nroot.render(<App />);\n// Ab\n \nsab\n \nconcurrent features available:\n// -\n \nuseTransition\n// -\n \nuseDeferredValue\n// -\n \nSuspense improvements\n// -\n \nAutomatic batching\n// -\n \nuseOptimistic (React 19)\n// -\n \nAsync actions (React 19)\n\nn\n \nReal Life: CRA ya Vite se naya React project — already concurrent mode mein hai. createRoot default use\nkaro.\n\nSECTION 18: React Testing Basics"
+  },
+  {
+    "id": 81,
+    "question": "React components test karne ke liye sabse popular library kaunsi hai?",
+    "options": [
+      "Enzyme (Airbnb)",
+      "React Testing Library (@testing-library/react)",
+      "Jest only",
+      "Cypress only"
+    ],
+    "answer": "B",
+    "explanation": "React Testing Library (RTL) ab industry standard hai. Yeh user perspective se test karta hai — implementation\ndetails nahi. 'Test the way users use your app' philosophy.\n\n// npm install @testing-library/react\n \n@testing-library/jest-dom\nimport {\n \nrender, screen, fireEvent } from\n \n'@testing-library/react';\ntest('Counter increments on click', () =>\n \n{\nrender(<Counter />);\nconst\n \nbutton = screen.getByRole('button',\n \n{\n \nname:\n \n/increment/i\n \n});\nconst\n \ncount = screen.getByText(/count: 0/i);\nfireEvent.click(button);\nexpect(screen.getByText(/count: 1/i)).toBeInTheDocument();\n});\ntest('Shows error for invalid email',\n \nasync\n \n() =>\n \n{\nrender(<LoginForm />);\nfireEvent.change(screen.getByLabelText(/email/i),\n \n{\ntarget: {\n \nvalue: 'invalid' }\n});\nfireEvent.click(screen.getByRole('button', { name:\n \n/submit/i\n \n}));\nexpect(await screen.findByText(/invalid\n \nemail/i)).toBeVisible();\n});\n\nn\n \nReal Life: Login form test — user ki tarah email type karo, submit karo, error message dhundho —\nimplementation nahi."
+  },
+  {
+    "id": 82,
+    "question": "`act()` React testing mein kab use karte hain?",
+    "options": [
+      "Sirf async tests mein",
+      "Jab state updates aur DOM changes properly flush karni hon test mei",
+      "Mocking ke liye",
+      "Import karne ke liye"
+    ],
+    "answer": "B",
+    "explanation": "act() ensure karta hai ki sab state updates aur effects test assertions se pehle complete ho jaayein. RTL internally\nact() use karta hai — manually kum hi lagana padta hai.\n\nimport {\n \nact, render } from '@testing-library/react';\n// RTL's\n \nfireEvent aur userEvent automatically act()\n \nuse\n \nkarte\n \nhain\n// Manually tab lagao jab manual state updates trigger\n \nkaro\ntest('Timer updates', async () => {\nrender(<TimerComponent />);\nawait\n \nact(async () => {\n// Fake timers advance karo\njest.advanceTimersByTime(1000);\n});\nexpect(screen.getByText('1 second passed')).toBeInTheDocument();\n});\n// @testing-library/user-event prefer\n \nkaro fireEvent\n \nke\n \nupar\nimport userEvent from '@testing-library/user-event';\n\nawait\n \nuserEvent.click(button); // More realistic\n\nn\n \nReal Life: Async form submit test — act ke bina test race condition mein fail ho sakta hai."
+  },
+  {
+    "id": 83,
+    "question": "React mein hooks ko test kaise karte hain directly?",
+    "options": [
+      "Hooks test nahi ho sakte",
+      "`@testing-library/react-hooks` ya `renderHook` from RTL use karo",
+      "Component wrap karke sirf",
+      "Jest directly call karta hai hooks"
+    ],
+    "answer": "B",
+    "explanation": "renderHook (React Testing Library mein built-in) se custom hooks directly test kar sakte ho bina wrapper\ncomponent ke.\n\nimport {\n \nrenderHook, act } from '@testing-library/react';\n// Custom\n \nhook test\ntest('useCounter increments', () => {\nconst\n \n{ result } = renderHook(() => useCounter(0));\nexpect(result.current.count).toBe(0);\nact(() =>\n \n{\nresult.current.increment();\n});\nexpect(result.current.count).toBe(1);\n});\ntest('useFetch returns data', async () =>\n \n{\nconst\n \n{ result } = renderHook(() => useFetch('/api/users'));\n// Initially loading\nexpect(result.current.loading).toBe(true);\nawait\n \nact(async () => {\nawait\n \nnew\n \nPromise(resolve => setTimeout(resolve, 0));\n});\nexpect(result.current.data).toBeDefined();\n});\n\nn\n \nReal Life: useFetch custom hook test — mock fetch karo, loading state, data, error sab verify karo.\n\nSECTION 19: React Router v6/v7 Basics"
+  },
+  {
+    "id": 84,
+    "question": "React Router v6 mein `useNavigate` kaise use karte hain?",
+    "options": [
+      "useHistory jo v5 mein tha",
+      "useNavigate hook se navigate function milta hai jo programmatic navigation karta hai",
+      "window.location.href sirf",
+      "Link component se"
+    ],
+    "answer": "B",
+    "explanation": "React Router v6 mein useHistory ko useNavigate ne replace kiya. navigate('/path') se programmatic navigation,\nnavigate(-1) se back, navigate(1) se forward.\n\nimport {\n \nuseNavigate } from 'react-router-dom';\nfunction\n \nLoginForm() {\nconst\n \nnavigate = useNavigate();\nasync\n \nfunction handleSubmit(e) {\ne.preventDefault();\ntry {\nawait\n \nlogin(formData);\nnavigate('/dashboard'); // Login ke baad redirect\n}\n \ncatch (err) {\nnavigate('/error', { state: { message: err.message\n \n}\n \n});\n}\n}\nreturn (\n<form\n \nonSubmit={handleSubmit}>\n{/* ... */}\n<button onClick={() => navigate(-1)}>Go\n \nBack</button>\n<button type=\"submit\">Login</button>\n</form>\n);\n}\n\nn\n \nReal Life: Login success hone par dashboard redirect, logout hone par home redirect — useNavigate se karo."
+  },
+  {
+    "id": 85,
+    "question": "React Router mein `useParams` kya return karta hai?",
+    "options": [
+      "Query string parameters",
+      "URL dynamic parameters object — jaise :id, :slug",
+      "Navigation state",
+      "Route props"
+    ],
+    "answer": "B",
+    "explanation": "useParams URL ke dynamic segments return karta hai. Route mein :productId define karo, useParams() se {\nproductId: '123' } milega.\n\n// Route\n \ndefinition\n<Route path=\"/products/:productId\" element={<ProductDetail\n \n/>}\n \n/>\n<Route path=\"/blog/:year/:slug\" element={<BlogPost\n \n/>}\n \n/>\n// Component mein\nfunction\n \nProductDetail() {\nconst\n \n{ productId } = useParams();\nconst\n \n{ data } = useFetch(`/api/products/${productId}`);\nreturn <div>{data?.name}</div>;\n}\nfunction\n \nBlogPost() {\nconst\n \n{ year, slug } = useParams();\n// URL: /blog/2024/react-19-guide\n\n// year =\n \n'2024', slug = 'react-19-guide'\nreturn <div>Post: {slug} ({year})</div>;\n}\n\nn\n \nReal Life: Product detail page — URL mein /products/456 se 456 extract karo useParams se aur API call karo."
+  },
+  {
+    "id": 86,
+    "question": "React Router v6 mein nested routes kaise define karte hain?",
+    "options": [
+      "Sirf parent mein route define karo",
+      "Parent Route ke andar child Routes + `` use karo child render karne ke liye",
+      "useNested() hook",
+      "Nested routing v6 mein possible nahi"
+    ],
+    "answer": "B",
+    "explanation": "React Router v6 mein nested routes parent component mein Outlet component ke zariye render hote hain. Parent\ncomponent ka layout maintain rehta hai.\n\n// Route\n \nsetup\n<Routes>\n<Route path=\"/dashboard\" element={<DashboardLayout\n \n/>}>\n<Route index element={<Overview />} /> {/* /dashboard\n \n*/}\n<Route path=\"users\" element={<Users />}\n \n/> {/* /dashboard/users\n \n*/}\n<Route path=\"settings\" element={<Settings\n \n/>}\n \n/>\n</Route>\n</Routes>\n// DashboardLayout.jsx\nfunction\n \nDashboardLayout() {\nreturn (\n<div>\n<Sidebar\n \n/> {/* Common sidebar */}\n<main>\n<Outlet /> {/* Child routes yahan render honge */}\n</main>\n</div>\n);\n}\n\nn\n \nReal Life: Admin panel — sidebar + header common layout, content area mein alag-alag pages nested routes\nse.\n\nSECTION 20: Mixed Concepts – Final Round"
+  },
+  {
+    "id": 87,
+    "question": "React mein `batch updates` kya hain?",
+    "options": [
+      "Multiple renders ko ek mein combine karna",
+      "React 18+ mein multiple setState calls ek re-render mein batch hote hain — unnecessary re-renders avoid",
+      "API calls batch karna",
+      "Sirf event handlers mein hota hai"
+    ],
+    "answer": "B",
+    "explanation": "React 18 mein Automatic Batching aaya — ab async callbacks (setTimeout, promises) mein bhi multiple setState\nek re-render mein batch hote hain. React 17 mein sirf event handlers mein hota tha.\n\n// React\n \n17 — async mein batching nahi tha (2\n \nre-renders)\nsetTimeout(() => {\nsetCount(c => c + 1); // Re-render 1\nsetFlag(f\n \n=> !f); // Re-render 2\n}, 1000);\n// React\n \n18/19 — Automatic Batching\n \nn\n \n(1\n \nre-render)\nsetTimeout(() => {\nsetCount(c => c + 1); // Batch\nsetFlag(f\n \n=> !f); // Batch\n}, 1000);\n \n// Sirf 1 re-render!\n// Batching rokni ho toh:\nimport {\n \nflushSync } from 'react-dom';\nflushSync(() => setCount(c => c + 1)); //\n \nImmediate\n \nrender\nflushSync(() => setFlag(f => !f)); //\n \nImmediate\n \nrender\n\nn\n \nReal Life: API response mein 3 state updates — React 18 se automatically ek re-render mein hote hain,\nperformance better."
+  },
+  {
+    "id": 88,
+    "question": "`React.lazy` ke saath dynamic import ka syntax kya hai?",
+    "options": [
+      "import(Component)",
+      "() => import('./Component')",
+      "lazy(import('./Component'))",
+      "require('./Component')"
+    ],
+    "answer": "B",
+    "explanation": "React.lazy ek function accept karta hai jo promise return kare — dynamic import syntax () => import('./Component')\nexactly yahi hai.\n\n// Sahi syntax\n \nn\n\nconst\n \nDashboard = React.lazy(() => import('./Dashboard'));\nconst\n \nSettings = React.lazy(() => import('./pages/Settings'));\n// Named\n \nexport lazy load karna\nconst\n \n{ Chart } = React.lazy(() =>\nimport('./Chart').then(module => ({ default: module.Chart\n \n}))\n);\n// Route-based code splitting\nconst\n \nroutes = [\n{\n \npath: '/home', Component: lazy(() => import('./pages/Home'))\n \n},\n{\n \npath: '/about', Component: lazy(() =>\n \nimport('./pages/About'))\n \n},\n];\n\nn\n \nReal Life: Large app mein route-based code splitting — pehli load par sirf Home page ka JS aaye, Settings\npage visit karne par Settings JS load ho."
+  },
+  {
+    "id": 89,
+    "question": "React mein `Portal` mein event bubbling kaise kaam karta hai?",
+    "options": [
+      "Portal mein events bubble nahi karte",
+      "Portal DOM hierarchy se bahar ho lekin React tree hierarchy se bubble karta hai — parent component mein events milte hai",
+      "Sirf DOM hierarchy follow karta hai",
+      "Events block ho jaate hain"
+    ],
+    "answer": "B",
+    "explanation": "Portal DOM mein body ke under render ho lekin React component tree mein parent ke under rehta hai. Events\nReact tree se bubble karte hain — DOM structure se nahi.\n\nfunction\n \nParent() {\nfunction\n \nhandleClick() {\n// YEH CALL HOGA even though Modal is\n \nin document.body!\nconsole.log('Parent caught modal click');\n}\nreturn (\n<div\n \nonClick={handleClick}>\n<Modal> {/* document.body mein render\n \nhoga */}\n<button>Click me!</button>\n</Modal>\n{/* Click\n \nModal mein hoga, React tree\n \nse Parent\n \ntak\n \nbubble\n \nkarega\n \n*/}\n</div>\n);\n}\n\nn\n \nReal Life: Modal mein click hone par parent ki onClick trigger ho sakti hai — e.stopPropagation() zaroori ho\nsakta hai."
+  },
+  {
+    "id": 90,
+    "question": "React mein `useEffect` ke andar async function kaise likhte hain?",
+    "options": [
+      "useEffect(async () => {}, []) — directly async",
+      "Andar ek async function define karo aur call karo — ya IIFE use karo",
+      "useAsync() hook use karo",
+      "Promise.then() sirf"
+    ],
+    "answer": "B",
+    "explanation": "useEffect callback async nahi ho sakta kyunki async function Promise return karta hai lekin React cleanup function\nexpect karta hai ya undefined. Andar async function define karo.\n\n// GALAT\n \n— useEffect async\n \n7\n\nuseEffect(async () => {\nconst\n \ndata = await fetchData(); // React warning!\nsetData(data);\n}, []);\n// SAHI —\n \nandar async function\n \nn\n\nuseEffect(() => {\nasync\n \nfunction loadData() {\ntry {\nconst\n \ndata = await fetchData();\nsetData(data);\n}\n \ncatch (error) {\nsetError(error);\n}\n}\nloadData();\n}, []);\n\n// Ya\n \nIIFE\nuseEffect(() => {\n(async ()\n \n=> {\nconst\n \ndata = await fetchData();\nsetData(data);\n})();\n}, []);\n\nn\n \nReal Life: Component mount hone par API call — async/await inside useEffect ka sahi pattern."
+  },
+  {
+    "id": 91,
+    "question": "`useCallback` kab actually helpful nahi hota?",
+    "options": [
+      "Hamesha helpful hai",
+      "Jab child component React.memo use nahi karta — useCallback ka koi faida nahi",
+      "Sirf development mein helpful hai",
+      "Large applications mein"
+    ],
+    "answer": "B",
+    "explanation": "useCallback ka faida sirf tab hai jab stable function reference matter kare — React.memo wrapped child ya\nuseEffect dependency. Bina memo ke child ko stable reference se koi fark nahi.\n\n// useCallback ka koi faida nahi yahan\nfunction\n \nParent() {\nconst\n \nhandleClick = useCallback(() =>\n \n{\ndoSomething();\n}, []); // Useless — no benefit\nreturn <Child onClick={handleClick} />;\n}\n// Child\n \nReact.memo nahi hai — har parent\n \nrender pe\n \nre-render\n \nhoga\n// useCallback USEFUL hai yahan\n \nn\n\nconst\n \nMemoChild = React.memo(Child); //\n \nMemo use kiya\nfunction\n \nParent() {\nconst\n \nhandleClick = useCallback(() =>\n \n{\ndoSomething(id);\n}, [id]);\n \n// Now useful — MemoChild won't\n \nre-render\n \nunnecessarily\nreturn <MemoChild onClick={handleClick}\n \n/>;\n}\n\nn\n \nReal Life: React.memo + useCallback ek team hai — dono saath lagao, sirf ek se kaam nahi."
+  },
+  {
+    "id": 92,
+    "question": "React mein `Object.is` comparison kab relevant hai?",
+    "options": [
+      "Sirf TypeScript mein",
+      "React state comparisons mein — useState/useEffect dependencies Object.is se compare hoti hai",
+      "Sirf objects ke liye",
+      "Performance profiling mein"
+    ],
+    "answer": "B",
+    "explanation": "React state change detect karne ke liye Object.is use karta hai. Same value set karne par re-render nahi hota.\nObjects/arrays ke liye reference check hota hai — new object = new reference = re-render.\n\n// Object.is comparison examples:\nObject.is(1, 1) // true — same primitive\nObject.is({}, {}) // false — different references\nObject.is(NaN, NaN) // true — special\n \ncase\n// React\n \nmein:\nconst\n \n[count, setCount] = useState(0);\nsetCount(0); // Object.is(0, 0) = true,\n \nno re-render\n \nn\n\nconst\n \n[user, setUser] = useState({ name: 'Raj' });\nsetUser({\n \nname: 'Raj' }); // Object.is({}, {}) = false,\n \nRE-RENDER!\n// Naya object = new reference = React re-renders\n// Solution:\nsetUser(prev => prev.name === 'Raj' ?\n \nprev : { name:\n \n'Raj'\n \n});\n// Same reference return karo agar kuch\n \nchange nahi\n \nhua\n\nn\n \nReal Life: State mein same value set karne ki wajah se unexpected re-renders — Object.is samjho to debug\nkaro."
+  },
+  {
+    "id": 93,
+    "question": "React 19 mein `` action aur React Server Actions ka kya connection hai?",
+    "options": [
+      "Koi connection nahi",
+      "Form action prop mein Server Action function pass karo — directly server par run hoga, API route nahi chahiye",
+      "Sirf Next.js mei",
+      "Server Actions deprecated hain"
+    ],
+    "answer": "B",
+    "explanation": "React 19 + Next.js/frameworks mein Server Actions directly form action mein pass hote hain. Server par execute\nhote hain — no API route needed. 'use server' directive se mark karo.\n\n// app/actions.js\n'use\n \nserver';\nimport {\n \nrevalidatePath } from 'next/cache';\nexport async function createPost(formData) {\nconst\n \ntitle = formData.get('title');\nconst\n \ncontent = formData.get('content');\nawait\n \ndb.posts.create({ title, content });\nrevalidatePath('/posts'); // Next.js cache invalidate\n}\n// app/create-post/page.jsx (Server Component)\nimport {\n \ncreatePost } from '../actions';\nexport default function CreatePostPage() {\nreturn (\n<form\n \naction={createPost}> {/* Server\n \nAction!\n \n*/}\n<input name=\"title\" required />\n<textarea\n \nname=\"content\" required />\n<button type=\"submit\">Create Post</button>\n</form>\n);\n\n}\n\nn\n \nReal Life: Blog post create karna — Server Action se directly DB mein save karo, no REST API endpoint\nbanane ki zaroorat."
+  },
+  {
+    "id": 94,
+    "question": "React DevTools se kya-kya inspect kar sakte hain?",
+    "options": [
+      "Sirf component names",
+      "Component tree, props, state, hooks values, context, profiling, renders count",
+      "Sirf console errors",
+      "Network requests"
+    ],
+    "answer": "B",
+    "explanation": "React DevTools browser extension bahut powerful hai — component tree, har component ke props/state/hooks,\ncontext values, render counts, profiler se performance analysis.\n\n// React\n \nDevTools mein:\n// 1.\n \nComponents tab:\n// -\n \nComponent tree dekho\n// -\n \nProps edit karo live\n// -\n \nState inspect karo\n// -\n \nHooks values dekho (useState, useReducer\n \nvalues)\n// -\n \nContext values\n// 2.\n \nProfiler tab:\n// -\n \nRecord session\n// -\n \nFlame graph — kaunsa component slow hai\n// -\n \nRender count aur duration\n// -\n \nWhy\n \ncomponent re-rendered\n// Useful: Components tab > Filter > Search\n \ncomponent\n \nname\n// Click\n \ncomponent > Right panel mein\n \nprops\n \n+\n \nstate\n\nn\n \nReal Life: Component ki state kya hai debug karna — DevTools mein directly dekho bina console.log ke."
+  },
+  {
+    "id": 95,
+    "question": "React mein `flushSync` kab use karte hain?",
+    "options": [
+      "Hamesha",
+      "Jab React batching bypass karni ho aur immediate synchronous DOM update chahiye",
+      "Performance ke liye",
+      "Server rendering mein"
+    ],
+    "answer": "B",
+    "explanation": "flushSync React ki normal batching bypass karta hai aur synchronous DOM update force karta hai. Rarely use\nkaro — sirf tab jab immediately updated DOM chahiye hoon next line mein.\n\nimport {\n \nflushSync } from 'react-dom';\nfunction\n \nScrollToBottom() {\nconst\n \nlistRef = useRef(null);\nfunction\n \naddItem() {\nflushSync(() => {\nsetItems(prev => [...prev, newItem]);\n \n// Turant\n \nDOM\n \nupdate\n\n});\n// Yahan\n \nDOM already updated hai\n// Toh scroll correctly bottom tak jaayega\nlistRef.current.scrollTop = listRef.current.scrollHeight;\n}\nreturn <ul ref={listRef}>{items.map(...)}</ul>;\n}\n// Bina flushSync — setItems batch hota, scroll\n \npurani\n \nheight\n \nse\n \nhota\n\nn\n \nReal Life: Chat app mein naya message add karo aur automatically scroll to bottom — flushSync ensure karta\nhai scroll sahi height pe ho."
+  },
+  {
+    "id": 96,
+    "question": "React 19 mein `Suspense` list ka kya improvement hua?",
+    "options": [
+      "Koi change nahi",
+      "List ke items gradually reveal ho sakte hain — SuspenseList jaisi functionality improve hui",
+      "Suspense deprecated hua",
+      "Sirf images ke liye"
+    ],
+    "answer": "B",
+    "explanation": "React 19 mein Suspense aur transitions saath use karne se better list reveal experiences possible hain. Pehle sab\nek saath aate the, ab staggered reveals possible hain.\n\n// Suspense + Transition = Smooth list loading\nfunction\n \nProductGrid() {\nconst\n \n[category, setCategory] = useState('all');\nconst\n \n[isPending, startTransition] = useTransition();\nreturn (\n<>\n<CategoryFilter\nonChange={cat => startTransition(() => setCategory(cat))}\n/>\n<div\n \nstyle={{ opacity: isPending ? 0.7 : 1 }}>\n<Suspense\n \nfallback={<GridSkeleton />}>\n<ProductList category={category} />\n</Suspense>\n</div>\n</>\n);\n}\n// Filter\n \nchange karne par: dim grid,\n \nnew\n \nproducts\n \nload,\n \nreveal\n\nn\n \nReal Life: E-commerce category filter — purana category dim ho, naye products skeleton ke saath load hon,\nsmooth transition."
+  },
+  {
+    "id": 97,
+    "question": "React mein `prop drilling` kya hai aur solutions kya hain?",
+    "options": [
+      "Props TypeScript mein type karna",
+      "Props ko bahut deeply nested components tak pass karna — solution: Context, composition, ya state management",
+      "Props validate karna",
+      "Default props set karna"
+    ],
+    "answer": "B",
+    "explanation": "Prop drilling tab hota hai jab intermediate components ko props pass karne padte hain sirf aage forward karne ke\nliye. Solutions: Context API, component composition, Zustand/Redux.\n\n// Prop drilling problem\nfunction\n \nApp() {\nconst\n \n[user, setUser] = useState(userObj);\nreturn <Layout user={user}><Main user={user} /></Layout>;\n}\nfunction\n \nLayout({ user, children }) {\nreturn <>{children}<Header user={user} /></>;\n}\nfunction\n \nHeader({ user }) {\nreturn <Avatar user={user} />; // Sirf Avatar\n \nko chahiye\n \nnn\n\n}\n// Solution 1 — Context\n \nn\n\nconst\n \nUserContext = createContext();\n<UserContext value={user}><App /></UserContext>\n// Avatar\n \nmein: const user = use(UserContext);\n// Solution 2 — Composition\n \nn\n\nfunction\n \nApp() {\nreturn <Layout header={<Header user={user} />} />;\n}\n\nn\n \nReal Life: User avatar component ko 5 levels niche pass karna — Context se seedha access karo."
+  },
+  {
+    "id": 98,
+    "question": "React mein `Controlled Input` mein cursor jump problem kab hoti hai aur fix kya hai?",
+    "options": [
+      "Cursor kabhi jump nahi karta",
+      "Jab value prop asynchronously update ho ya case normalize ho — solution: state sync rakhna",
+      "Sirf mobile mei",
+      "TypeScript fix karta hai"
+    ],
+    "answer": "B",
+    "explanation": "Controlled input mein agar value re-render ke beech change ho ya string normalize ho (uppercase), cursor end pe\njump kar sakta hai. State synchronously update karke fix hota hai.\n\n// Problem — cursor jumps\nfunction\n \nInput() {\nconst\n \n[value, setValue] = useState('');\n// Async\n \nstate update = cursor jump\nasync\n \nfunction handleChange(e) {\nconst\n \nresult = await someAsyncTransform(e.target.value);\nsetValue(result); // React state update\n}\nreturn <input value={value} onChange={handleChange}\n \n/>;\n}\n// Fix\n \nn\n \n— Synchronous update\nfunction\n \nInput() {\nconst\n \n[value, setValue] = useState('');\nfunction\n \nhandleChange(e) {\nconst\n \ntransformed = e.target.value.toUpperCase();\n\nsetValue(transformed); // Sync — no cursor jump\n}\nreturn <input value={value} onChange={handleChange}\n \n/>;\n}\n\nn\n \nReal Life: Uppercase conversion input — sync karo value update, cursor position preserve rahegi."
+  },
+  {
+    "id": 99,
+    "question": "React mein `reconciler` aur `renderer` mein kya fark hai?",
+    "options": [
+      "Same cheez hain",
+      "Reconciler changes dhundhta hai (virtual DOM diff), renderer actual output pe apply karta hai (DOM, Native, etc.)",
+      "Reconciler sirf server mein hai",
+      "Renderer React ka purana naam tha"
+    ],
+    "answer": "B",
+    "explanation": "React ka architecture two parts mein hai: Reconciler (react package) changes calculate karta hai, Renderer\n(react-dom, react-native, etc.) unhe target platform par apply karta hai. Isliye ek codebase web aur native dono pe\nkaam karta hai.\n\n// Reconciler — react package\n// -\n \nVirtual DOM maintain karta hai\n// -\n \nDiff\n \nalgorithm chalata hai\n// -\n \nKya\n \nchange karna hai batata hai\n// Renderers — different platforms\n// react-dom — Browser DOM update karta\n \nhai\n// react-native — iOS/Android native views\n// react-three-fiber — Three.js 3D rendering\n// react-pdf — PDF generate karta hai\n// ink —\n \nTerminal/CLI rendering\n// Yahi reason hai ki:\nimport {\n \nuseState } from 'react'; // Reconciler\nimport {\n \ncreateRoot } from 'react-dom/client'; //\n \nBrowser\n \nrenderer\nimport {\n \nAppRegistry } from 'react-native';\n \n// Native\n \nrenderer\n\nn\n \nReal Life: React Native — same React components iOS aur Android par run hote hain, sirf renderer alag hota\nhai."
+  },
+  {
+    "id": 100,
+    "question": "Interview mein pucha: React 19 ka sabse important naya feature kya hai apke opinion mein aur kyun?",
+    "options": [
+      "forwardRef remove karna",
+      "Actions aur async transitions — form handling aur loading states ka complexity dramatically reduce hua, real-world apps ke liye most impactful",
+      "useId hook",
+      "React.memo improvement"
+    ],
+    "answer": "B",
+    "explanation": "Actions (form action as function, useActionState, useFormStatus, useOptimistic) saath mein ek complete story\ndete hain async operations ke liye. Loading states, optimistic updates, error handling — sab built-in. Yeh web apps\nki most common patterns ko significantly simplify karta hai.\n\n// React\n \n19 Actions — Complete pattern\n'use\n \nserver';\nexport async function submitOrder(prevState, formData)\n \n{\ntry {\nconst\n \norder = await createOrder(formData);\nreturn {\n \nsuccess: true, orderId: order.id\n \n};\n}\n \ncatch {\nreturn {\n \nerror: 'Order failed. Try again.' };\n}\n}\n// Client\nfunction\n \nOrderForm() {\nconst\n \n[state, action, isPending] = useActionState(submitOrder,\n \nnull);\nconst\n \n[optimisticMsg, setOptimisticMsg]\n \n=\n \nuseOptimistic(null);\nreturn (\n<form\n \naction={action}>\n{state?.error && <Alert>{state.error}</Alert>}\n{state?.success && <Success id={state.orderId} />}\n<SubmitButton /> {/* useFormStatus internally\n \n*/}\n</form>\n);\n}\n\nn\n \nReal Life: E-commerce checkout — order submit, loading state, success/error — pehle 50+ lines tha, React 19\nmein 20 lines. Yahi sabse bada win hai."
+  }
+]
