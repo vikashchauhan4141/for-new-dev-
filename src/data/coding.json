@@ -1,0 +1,173 @@
+[
+  {
+    "id": 1,
+    "section": "React 19 New Features",
+    "title": "Create a custom Input component in React 19 that accepts a ref without using forwardRef.",
+    "setup": "Create a new React 19 project (Vite):\n\nnpm\n \ncreate\n \nvite@latest my-app -- --template react\ncd my-app && npm install\nnpm\n \nrun\n \ndev",
+    "task": "1. Create Input.jsx that accepts ref as a direct prop.\n2. In App.jsx, use a ref to focus the input on a button click.\n3. No forwardRef -- that is removed in React 19.",
+    "answer": "// Input.jsx\nexport\n \nfunction Input({ ref, placeholder,\n \n...props })\n \n{\nreturn\n \n<input ref={ref} placeholder={placeholder}\n \n{...props}\n \n/>;\n}\n// App.jsx\nimport\n \n{\n \nuseRef }\n \nfrom\n \n'react';\nimport\n \n{\n \nInput\n \n} from\n \n'./Input';\nexport\n \ndefault\n \nfunction App() {\nconst inputRef =\n \nuseRef(null);\nreturn\n \n(\n<div>\n<Input ref={inputRef} placeholder='Type\n \nhere...'\n \n/>\n<button\n \nonClick={() => inputRef.current.focus()}>\nFocus\n \nInput\n</button>\n</div>\n);\n}",
+    "tip": "React 19 mein ref directly prop ki tarah aata hai. forwardRef() likhne ki zaroorat nahi -- bas function signature mein { ref, ...props } likho."
+  },
+  {
+    "id": 2,
+    "section": "React 19 New Features",
+    "title": "Build a component that uses the new use() hook to read a Context value conditionally.",
+    "setup": "Same React 19 project.",
+    "task": "1. Create ThemeContext using createContext.\n2. Build a ThemedBox component that reads theme using use() -- not useContext.\n3. Conditionally show theme color based on a prop 'show'.",
+    "answer": "// ThemeContext.js\nimport\n \n{\n \ncreateContext\n \n} from 'react';\nexport\n \nconst ThemeContext = createContext('light');\n// ThemedBox.jsx\nimport\n \n{\n \nuse }\n \nfrom 'react';\nimport\n \n{\n \nThemeContext\n \n} from './ThemeContext';\nexport\n \nfunction ThemedBox({ show }) {\nif\n \n(!show) return <p>Hidden</p>;\nconst theme\n \n= use(ThemeContext); //\n \nconditional\n \ncall\n \n--\n \nallowed!\nreturn\n \n(\n<div\n \nstyle={{\n \nbackground: theme === 'dark' ?\n \n'#1e293b'\n \n:\n \n'#f8fafc',\ncolor: theme === 'dark'\n \n? 'white'\n \n:\n \n'black',\npadding: 16 }}>\nCurrent\n \ntheme: {theme}\n</div>\n);\n}\n// App.jsx\nimport\n \n{\n \nThemeContext\n \n} from './ThemeContext';\nimport\n \n{\n \nThemedBox\n \n} from './ThemedBox';\nexport\n \ndefault\n \nfunction App() {\nreturn\n \n(\n<ThemeContext\n \nvalue='dark'>\n<ThemedBox show={true} />\n</ThemeContext>\n);\n}",
+    "tip": "use() ka sabse bada advantage -- conditionally call ho sakta hai. Purana useContext sirf top-level mein call hota tha. Context provider ka syntax bhi React 19 mein hai, nahi."
+  },
+  {
+    "id": 3,
+    "section": "React 19 New Features",
+    "title": "Implement a Like button using useOptimistic that instantly updates count before server responds.",
+    "setup": "React 19 project. Simulate server with a setTimeout.",
+    "task": "1. Show a like count from initial prop.\n2. On click -- instantly show +1 using useOptimistic.\n\n3. Simulate a server call with 1.5s delay.\n4. If server fails, count must rollback automatically.",
+    "answer": "import\n \n{\n \nuseOptimistic, useState } from 'react';\nasync function\n \nfakeLikeAPI(shouldFail\n \n= false) {\nawait new Promise(r\n \n=> setTimeout(r, 1500));\nif\n \n(shouldFail)\n \nthrow new Error('Server\n \nerror');\n}\nexport\n \ndefault\n \nfunction LikeButton({\n \ninitialLikes\n \n=\n \n42\n \n})\n \n{\nconst [likes, setLikes] = useState(initialLikes);\nconst [optimisticLikes, addOptimistic]\n \n= useOptimistic(\nlikes,\n(current,\n \ndelta) => current + delta\n);\nasync function handleLike() {\naddOptimistic(1);\n \n// Instant UI update\ntry {\nawait fakeLikeAPI();\n \n// Server call\nsetLikes(l => l\n \n+ 1); // Commit\n \nif\n \nsuccess\n} catch {\n//\n \nReact\n \nauto-rolls back optimistic\n \nupdate\nalert('Failed! Count rolled back.');\n}\n}\nreturn\n \n(\n<button onClick={handleLike}>\nLike\n \n{optimisticLikes} Likes\n</button>\n);\n}",
+    "tip": "useOptimistic automatically rollback karta hai jab async action complete hota hai -- manually kuch undo nahi karna padta. addOptimistic call karo, server fail ho toh original likes state wapas aa jaata hai."
+  },
+  {
+    "id": 4,
+    "section": "API Integration",
+    "title": "Fetch a list of users from jsonplaceholder and display them. Handle loading and error states properly.",
+    "setup": "React 19 project (Vite). No extra packages needed.",
+    "task": "1. Fetch users on component mount using useEffect.\n2. Show a loading spinner while fetching.\n3. Show an error message if fetch fails.\n4. Cancel the fetch if component unmounts (AbortController).",
+    "answer": "import\n \n{\n \nuseState,\n \nuseEffect } from 'react';\nexport\n \ndefault\n \nfunction UserList() {\nconst [users, setUsers]\n \n= useState([]);\nconst [loading,\n \nsetLoading] = useState(true);\nconst [error, setError]\n \n= useState(null);\nuseEffect(()\n \n=>\n \n{\nconst controller =\n \nnew AbortController();\nasync function\n \nfetchUsers() {\ntry {\nconst\n \nres\n \n= await fetch(\n'https://jsonplaceholder.typicode.com/users',\n{ signal: controller.signal\n \n}\n);\nif\n \n(!res.ok) throw new Error('Network\n \nerror');\nconst\n \ndata\n \n= await res.json();\nsetUsers(data);\n} catch\n \n(err) {\nif\n \n(err.name !== 'AbortError') setError(err.message);\n} finally {\nsetLoading(false);\n}\n}\nfetchUsers();\nreturn\n \n()\n \n=> controller.abort();\n \n// cleanup\n},\n \n[]);\nif\n \n(loading)\n \nreturn\n \n<p>Loading...</p>;\nif\n \n(error)\n \nreturn\n \n<p>Error: {error}</p>;\nreturn\n \n(\n<ul>\n{users.map(u\n \n=>\n \n(\n<li key={u.id}>{u.name} -- {u.email}</li>\n))}\n</ul>\n);\n}",
+    "tip": "useEffect ke andar async function directly mat likhna -- useEffect(async()=>{}) React warning deta hai. Andar define karke call karo. AbortController se memory leak avoid hota hai."
+  },
+  {
+    "id": 5,
+    "section": "API Integration",
+    "title": "Build a user list with React Query -- with caching, loading state, and a refetch button.",
+    "setup": "npm\n \ninstall @tanstack/react-query\n\nSETUP\n\nReact 19 + React Query setup:\n\nnpm\n \ninstall @tanstack/react-query",
+    "task": "1. Wrap App with QueryClientProvider.\n2. Use useQuery to fetch users from jsonplaceholder.\n3. Show loading, error, and data states.\n4. Add a Refetch button.\n5. Set staleTime to 60 seconds.",
+    "answer": "// main.jsx\nimport\n \n{\n \nQueryClient,\n \nQueryClientProvider\n \n} from\n \n'@tanstack/react-query';\nconst queryClient\n \n= new QueryClient();\nroot.render(\n<QueryClientProvider\n \nclient={queryClient}>\n<App\n \n/>\n</QueryClientProvider>\n);\n// UserList.jsx\nimport\n \n{\n \nuseQuery\n \n} from '@tanstack/react-query';\nconst fetchUsers =\n \n()\n \n=>\nfetch('https://jsonplaceholder.typicode.com/users')\n.then(r => {\n \nif\n \n(!r.ok) throw new Error('Failed');\n \nreturn\n \nr.json();\n \n});\nexport\n \ndefault\n \nfunction UserList() {\nconst { data, isLoading, isError, error, refetch,\n \nisFetching\n \n}\n \n=\nuseQuery({\nqueryKey: ['users'],\nqueryFn:\n \nfetchUsers,\nstaleTime: 60 *\n \n1000,\n});\nif\n \n(isLoading) return <p>Loading...</p>;\nif\n \n(isError)\n \nreturn <p>Error: {error.message}</p>;\nreturn\n \n(\n<div>\n<button\n \nonClick={() => refetch()} disabled={isFetching}>\n{isFetching ?\n \n'Refreshing...'\n \n: 'Refetch'}\n</button>\n<ul>\n{data.map(u =>\n \n<li key={u.id}>{u.name}</li>)}\n</ul>\n</div>\n);\n}",
+    "tip": "queryKey array mein jo value ho woh caching key hai. staleTime matlab kitne time tak data fresh maana jaaye -- is time mein refetch nahi hoga even if component remounts."
+  },
+  {
+    "id": 6,
+    "section": "API Integration",
+    "title": "Create a form to add a new post using useMutation (React Query). On success, refresh the posts list.",
+    "setup": "npm\n \ninstall @tanstack/react-query\n\nSETUP\n\nReact Query already installed. Use jsonplaceholder POST endpoint.",
+    "task": "1. useQuery se posts fetch karo.\n\n2. useMutation se new post create karo (POST /posts).\n3. On success -- invalidate 'posts' query to refetch.\n4. Show pending state on submit button.",
+    "answer": "import\n \n{\n \nuseQuery,\n \nuseMutation, useQueryClient }\nfrom\n \n'@tanstack/react-query';\nimport\n \n{\n \nuseState\n \n} from 'react';\nconst API = 'https://jsonplaceholder.typicode.com';\nexport\n \ndefault\n \nfunction Posts() {\nconst queryClient =\n \nuseQueryClient();\nconst [title, setTitle] = useState('');\nconst { data: posts\n \n= [] } = useQuery({\nqueryKey:\n \n['posts'],\nqueryFn: () =>\n \nfetch(`${API}/posts?_limit=5`).then(r\n \n=>\n \nr.json()),\n});\nconst mutation =\n \nuseMutation({\nmutationFn: (newPost) =>\nfetch(`${API}/posts`, {\nmethod: 'POST',\nheaders: {\n \n'Content-Type': 'application/json'\n \n},\nbody:\n \nJSON.stringify(newPost),\n}).then(r =>\n \nr.json()),\nonSuccess:\n \n()\n \n=> {\nqueryClient.invalidateQueries({\n \nqueryKey: ['posts']\n \n});\nsetTitle('');\n},\n});\nfunction\n \nhandleSubmit(e) {\ne.preventDefault();\nmutation.mutate({\n \ntitle, body: 'New post', userId:\n \n1\n \n});\n}\nreturn\n \n(\n<div>\n<form onSubmit={handleSubmit}>\n<input\n \nvalue={title} onChange={e\n \n=> setTitle(e.target.value)}\nplaceholder='Post title' required\n \n/>\n<button type='submit' disabled={mutation.isPending}>\n{mutation.isPending ? 'Saving...' :\n \n'Add Post'}\n</button>\n</form>\n<ul>{posts.map(p\n \n=> <li key={p.id}>{p.title}</li>)}</ul>\n</div>\n);\n}",
+    "tip": "invalidateQueries se React Query samajh jaata hai ki is queryKey ka data stale ho gaya -- next render mein automatically refetch karta hai. onSuccess mein invalidate karo, data turant fresh ho jaata hai."
+  },
+  {
+    "id": 7,
+    "section": "API Integration",
+    "title": "Build a search input with API debouncing -- API call only after user stops typing for 500ms.",
+    "setup": "React 19 project. No extra library needed -- implement debounce manually.",
+    "task": "1. Input field for search query.\n2. Debounce the API call by 500ms using useEffect + setTimeout.\n3. Fetch from jsonplaceholder and filter by name.\n4. Cancel previous timer on each keystroke.",
+    "answer": "import\n \n{\n \nuseState,\n \nuseEffect } from 'react';\nexport\n \ndefault\n \nfunction SearchUsers()\n \n{\nconst [query, setQuery]\n \n= useState('');\nconst [results,\n \nsetResults] = useState([]);\nconst [loading,\n \nsetLoading] = useState(false);\nuseEffect(()\n \n=>\n \n{\nif\n \n(!query.trim())\n \n{ setResults([]);\n \nreturn;\n \n}\nconst timer =\n \nsetTimeout(async ()\n \n=>\n \n{\nsetLoading(true);\ntry {\nconst\n \nres\n \n= await fetch(\n'https://jsonplaceholder.typicode.com/users'\n);\nconst\n \ndata\n \n= await res.json();\nsetResults(\ndata.filter(u =>\nu.name.toLowerCase().includes(query.toLowerCase())\n)\n);\n} finally {\nsetLoading(false);\n}\n},\n \n500);\nreturn\n \n()\n \n=> clearTimeout(timer);\n},\n \n[query]);\nreturn\n \n(\n<div>\n<input value={query} onChange={e =>\n \nsetQuery(e.target.value)}\nplaceholder='Search users...' />\n{loading\n \n&&\n \n<p>Searching...</p>}\n<ul>\n{results.map(u\n \n=> <li key={u.id}>{u.name}</li>)}\n</ul>\n</div>\n);\n}",
+    "tip": "Debounce = useEffect cleanup ka smart use. Har keystroke par purana timer clear hota hai, naya set hota hai. 500ms koi key na dabaaye tab hi API call jaati hai. Yeh Google search jaise behaviour deta hai."
+  },
+  {
+    "id": 8,
+    "section": "API Integration",
+    "title": "Create a reusable useFetch custom hook that handles loading, error, and abort.",
+    "setup": "React 19 project. No extra packages.",
+    "task": "1. Build useFetch(url) custom hook.\n2. Returns { data, loading, error, refetch }.\n3. Auto-cancel request on unmount using AbortController.\n4. refetch() should re-trigger the API call.\n5. Use it in a component to fetch posts.",
+    "answer": "// hooks/useFetch.js\nimport\n \n{\n \nuseState,\n \nuseEffect, useCallback\n \n} from\n \n'react';\nexport\n \nfunction useFetch(url) {\nconst [data,\n \nsetData]\n \n= useState(null);\nconst [loading,\n \nsetLoading] = useState(true);\nconst [error, setError]\n \n= useState(null);\nconst [tick,\n \nsetTick]\n \n= useState(0);\nuseEffect(()\n \n=>\n \n{\nconst controller =\n \nnew AbortController();\nsetLoading(true);\nsetError(null);\nfetch(url,\n \n{ signal: controller.signal })\n.then(r\n \n=> {\n \nif\n \n(!r.ok) throw new Error('Failed');\n \nreturn\n \nr.json();\n \n})\n.then(d\n \n=> {\n \nsetData(d); setLoading(false);\n \n})\n.catch(err => {\nif\n \n(err.name !== 'AbortError') {\nsetError(err.message); setLoading(false);\n}\n});\nreturn\n \n()\n \n=> controller.abort();\n},\n \n[url,\n \ntick]);\nconst refetch =\n \nuseCallback(() => setTick(t\n \n=>\n \nt +\n \n1),\n \n[]);\nreturn\n \n{\n \ndata, loading, error, refetch\n \n};\n}\n// Posts.jsx\nimport\n \n{\n \nuseFetch\n \n} from './hooks/useFetch';\nexport\n \ndefault\n \nfunction Posts() {\nconst { data, loading, error, refetch }\n \n= useFetch(\n'https://jsonplaceholder.typicode.com/posts?_limit=5'\n);\nif\n \n(loading)\n \nreturn\n \n<p>Loading...</p>;\nif\n \n(error)\n \nreturn\n \n<p>{error} <button\n \nonClick={refetch}>Retry</button></p>;\nreturn\n \n(\n<div>\n<button\n \nonClick={refetch}>Refresh</button>\n{data.map(p\n \n=> <p key={p.id}>{p.title}</p>)}\n</div>\n);\n}",
+    "tip": "tick state refetch trigger karta hai -- jab bhi tick change hota hai useEffect re-run hota hai. Custom hooks mein 'use' prefix compulsory hai -- React lint rules check karta hai."
+  },
+  {
+    "id": 9,
+    "section": "Hooks Deep Dive",
+    "title": "Build a shopping cart using useReducer -- add item, remove item, clear cart, and show total.",
+    "setup": "React 19 project. No extra packages.",
+    "task": "1. Define cartReducer with actions: ADD_ITEM, REMOVE_ITEM, CLEAR.\n2. Show list of products with Add to Cart buttons.\n3. Show cart with quantities and total price.\n4. Clear cart button.",
+    "answer": "import\n \n{\n \nuseReducer }\n \nfrom 'react';\nconst products\n \n= [\n{\n \nid: 1,\n \nname: 'React Book', price:\n \n499\n \n},\n{\n \nid: 2,\n \nname: 'JS Course', price:\n \n999\n \n},\n{\n \nid: 3,\n \nname: 'Node\n \nGuide', price:\n \n299\n \n},\n];\nfunction\n \ncartReducer(state, action) {\nswitch\n \n(action.type)\n \n{\ncase\n \n'ADD_ITEM': {\nconst exists\n \n= state.find(i =>\n \ni.id\n \n===\n \naction.item.id);\nif\n \n(exists)\nreturn\n \nstate.map(i => i.id === action.item.id\n? {\n \n...i, qty: i.qty + 1 }\n \n: i);\nreturn [...state, { ...action.item,\n \nqty: 1\n \n}];\n}\ncase\n \n'REMOVE_ITEM':\nreturn state.filter(i => i.id !== action.id);\ncase\n \n'CLEAR':\nreturn [];\ndefault: return state;\n}\n}\nexport\n \ndefault\n \nfunction Cart() {\nconst [cart,\n \ndispatch] = useReducer(cartReducer, []);\nconst total\n \n= cart.reduce((s, i) =>\n \ns +\n \ni.price\n \n*\n \ni.qty,\n \n0);\nreturn\n \n(\n<div>\n<h3>Products</h3>\n{products.map(p\n \n=> (\n<div key={p.id}>\n{p.name}\n \n- Rs.{p.price}\n<button\n \nonClick={() => dispatch({ type:\n \n'ADD_ITEM',\n \nitem:\n \np\n \n})}>\nAdd\n</button>\n</div>\n))}\n<h3>Cart\n \n({cart.length} items)</h3>\n{cart.map(i\n \n=> (\n<div key={i.id}>\n{i.name}\n \nx{i.qty} = Rs.{i.price\n \n* i.qty}\n<button\n \nonClick={() => dispatch({ type:\n \n'REMOVE_ITEM',\n \nid:\n \ni.id\n \n})}>\nRemove\n</button>\n</div>\n))}\n<p>Total: Rs.{total}</p>\n<button\n \nonClick={() => dispatch({ type:\n \n'CLEAR'\n \n})}>Clear\n \nCart</button>\n</div>\n);\n}",
+    "tip": "useReducer mein dispatch reference stable hota hai -- useCallback mein wrap karne ki zaroorat nahi. Complex state (cart items with quantities) ke liye useReducer useState se zyada readable hota hai."
+  },
+  {
+    "id": 10,
+    "section": "Hooks Deep Dive",
+    "title": "Implement a live search with useDeferredValue -- input stays responsive while results update.",
+    "setup": "React 19 project. Create a large fake dataset.",
+    "task": "1. Generate 10,000 fake items.\n2. Input field for search -- must stay instantly responsive.\n3. Use useDeferredValue to defer the filtering.\n4. Show dim results while deferred value lags behind.",
+    "answer": "import\n \n{\n \nuseState,\n \nuseDeferredValue,\n \nuseMemo\n \n} from\n \n'react';\nconst items =\n \nArray.from({ length: 10000\n \n}, (_, i) =>\n \n({\nid: i,\nname: `Item\n \n${i}\n \n--\n \ncategory ${i %\n \n10}`,\n}));\nexport\n \ndefault\n \nfunction SearchList()\n \n{\nconst [query, setQuery] = useState('');\nconst deferred =\n \nuseDeferredValue(query);\nconst isStale =\n \ndeferred !== query;\nconst filtered =\n \nuseMemo(\n()\n \n=> items.filter(i =>\ni.name.toLowerCase().includes(deferred.toLowerCase())\n).slice(0,\n \n50),\n[deferred]\n);\nreturn\n \n(\n<div>\n<input value={query} onChange={e =>\n \nsetQuery(e.target.value)}\nplaceholder='Search 10,000 items...'\n \n/>\n<p>{filtered.length} results {isStale ?\n \n'(updating...)'\n \n:\n \n''}</p>\n<ul style={{\n \nopacity: isStale ?\n \n0.5\n \n: 1\n \n}}>\n{filtered.map(i => <li key={i.id}>{i.name}</li>)}\n</ul>\n</div>\n);\n}",
+    "tip": "useDeferredValue tab use karo jab tum parent ki value defer karna chahte ho. useTransition tab jab apni state update defer karni ho. Dono same React concurrent feature hain."
+  },
+  {
+    "id": 11,
+    "section": "Hooks Deep Dive",
+    "title": "Build a form with useId for proper label-input accessibility linking.",
+    "setup": "React 19 project.",
+    "task": "1. Create a reusable FormField component.\n2. Each FormField must link label to input using useId.\n3. Render the same FormField twice -- each must have unique IDs.\n4. Verify no htmlFor mismatch.",
+    "answer": "import\n \n{\n \nuseId\n \n} from\n \n'react';\nfunction\n \nFormField({ label, type = 'text'\n \n})\n \n{\nconst id\n \n= useId();\nreturn\n \n(\n<div\n \nstyle={{\n \nmarginBottom: 12 }}>\n<label htmlFor={id} style={{ display: 'block',\n \nmarginBottom:\n \n4\n \n}}>\n{label}\n</label>\n<input id={id} type={type} style={{\n \npadding: 6,\n \nwidth:\n \n200\n \n}}\n \n/>\n</div>\n);\n}\nexport\n \ndefault\n \nfunction SignupForm()\n \n{\nreturn\n \n(\n<form>\n<FormField label='Full Name' type='text' />\n<FormField label='Email' type='email' />\n<FormField label='Password' type='password'\n \n/>\n<button\n \ntype='submit'>Sign Up</button>\n</form>\n);\n}",
+    "tip": "useId list keys ke liye mat use karo -- sirf accessibility IDs (htmlFor, aria-labelledby) ke liye hai. SSR mein bhi server aur client par same ID generate hoti hai -- hydration mismatch avoid hota hai."
+  },
+  {
+    "id": 12,
+    "section": "Performance Optimization",
+    "title": "Optimize a slow component using React.memo and useCallback -- prevent unnecessary re-renders.",
+    "setup": "React 19 project.",
+    "task": "1. Parent has a counter state and a list of items.\n2. ExpensiveItem component logs 'rendered' on every render.\n3. Wrap ExpensiveItem with React.memo.\n4. Pass a delete handler using useCallback.\n5. Verify ExpensiveItem does NOT re-render when counter changes.",
+    "answer": "import\n \n{\n \nuseState,\n \nuseCallback, memo\n \n} from 'react';\nconst ExpensiveItem =\n \nmemo(function ExpensiveItem({\n \nitem,\n \nonDelete\n \n})\n \n{\nconsole.log('ExpensiveItem rendered:',\n \nitem.name);\nreturn\n \n(\n<li>\n{item.name}\n<button\n \nonClick={() => onDelete(item.id)}>Delete</button>\n</li>\n);\n});\nexport\n \ndefault\n \nfunction App() {\nconst [count, setCount] = useState(0);\nconst [items, setItems] = useState([\n{ id: 1, name:\n \n'React' },\n{ id: 2, name:\n \n'Node.js' },\n{ id: 3, name:\n \n'TypeScript' },\n]);\nconst handleDelete =\n \nuseCallback((id) => {\nsetItems(prev\n \n=> prev.filter(i =>\n \ni.id !== id));\n},\n \n[]);\nreturn\n \n(\n<div>\n<button\n \nonClick={() => setCount(c => c\n \n+ 1)}>\nCounter: {count}\n</button>\n<ul>\n{items.map(item => (\n<ExpensiveItem key={item.id} item={item} onDelete={handleDelete}\n \n/>\n))}\n</ul>\n</div>\n);\n}",
+    "tip": "React.memo + useCallback ek team hai. Sirf memo lagane se kaam nahi hoga agar handler function har render pe naya bane. useCallback stable reference deta hai tabhi memo skip kar pata hai re-render."
+  },
+  {
+    "id": 13,
+    "section": "Performance Optimization",
+    "title": "Implement code splitting with React.lazy and Suspense for a multi-page app.",
+    "setup": "React 19 project (Vite -- already supports code splitting).",
+    "task": "1. Create three pages: Home.jsx, About.jsx, Dashboard.jsx.\n2. Lazy load all three with React.lazy.\n3. Wrap routes with Suspense + loading fallback.\n4. Verify in browser Network tab that each page JS loads on demand.",
+    "answer": "import\n \n{\n \nlazy,\n \nSuspense, useState } from\n \n'react';\nconst Home\n \n=\n \nlazy(() => import('./pages/Home'));\nconst About\n \n=\n \nlazy(() => import('./pages/About'));\nconst Dashboard =\n \nlazy(() => import('./pages/Dashboard'));\nfunction\n \nLoadingSpinner() {\nreturn\n \n<div\n \nstyle={{\n \npadding: 20 }}>Loading\n \npage...</div>;\n}\nexport\n \ndefault\n \nfunction App() {\nconst [page,\n \nsetPage] = useState('home');\nconst pages\n \n= {\n \nhome: Home, about:\n \nAbout, dashboard:\n \nDashboard\n \n};\nconst Page =\n \npages[page];\nreturn\n \n(\n<div>\n<nav>\n{Object.keys(pages).map(p =>\n \n(\n<button\n \nkey={p} onClick={()\n \n=>\n \nsetPage(p)}\nstyle={{ fontWeight: page\n \n===\n \np ?\n \n'bold'\n \n:\n \n'normal',\n \nmarginRight:\n \n8\n \n}}>\n{p}\n</button>\n))}\n</nav>\n<Suspense fallback={<LoadingSpinner\n \n/>}>\n<Page\n \n/>\n</Suspense>\n</div>\n);\n}",
+    "tip": "Vite automatically creates separate JS chunks for each lazy import. Network tab mein dekho -- Dashboard click karne par tabhi Dashboard chunk download hoga. Bundle size significantly kam hoti hai."
+  },
+  {
+    "id": 14,
+    "section": "Performance Optimization",
+    "title": "Build a virtual list that renders 50,000 items without freezing using react-window.",
+    "setup": "npm\n \ninstall react-window\n\nSETUP\n\nReact 19 project + react-window:\n\nnpm\n \ninstall react-window",
+    "task": "1. Generate 50,000 fake list items.\n2. Render using FixedSizeList from react-window.\n3. Each row shows item index and name.\n4. Compare with normal map rendering (see the freeze).",
+    "answer": "import\n \n{\n \nFixedSizeList\n \n} from 'react-window';\nconst data\n \n= Array.from({ length: 50000 }, (_, i)\n \n=>\n \n({\nid: i,\nname: `Product ${i}\n \n-- Category ${i\n \n% 20}`,\n}));\nfunction\n \nRow({\n \nindex,\n \nstyle }) {\nreturn\n \n(\n<div\n \nstyle={{\n...style,\ndisplay:\n \n'flex',\n \nalignItems: 'center',\npadding:\n \n'0\n \n16px',\nborderBottom: '1px solid #e2e8f0',\nbackground:\n \nindex % 2 === 0 ? '#f8fafc'\n \n: 'white',\n}}>\n<span style={{ color: '#94a3b8', marginRight:\n \n12\n \n}}>#{index\n \n+\n \n1}</span>\n{data[index].name}\n</div>\n);\n}\nexport\n \ndefault\n \nfunction VirtualList()\n \n{\nreturn\n \n(\n<div>\n<p>Showing 50,000 items (virtualized)</p>\n<FixedSizeList height={500} itemCount={50000}\n \nitemSize={48}\n \nwidth='100%'>\n{Row}\n</FixedSizeList>\n</div>\n);\n}",
+    "tip": "FixedSizeList sirf visible rows DOM mein rakhta hai -- 50,000 items mein se sirf ~10-12 rows. Scroll karne par rows recycle hote hain. Gmail, Notion, VS Code -- sab virtualization use karte hain."
+  },
+  {
+    "id": 15,
+    "section": "Patterns and Advanced",
+    "title": "Implement global auth state using Context API -- login, logout, and protected route.",
+    "setup": "React 19 + React Router v6:\n\nnpm\n \ninstall react-router-dom",
+    "task": "1. Create AuthContext with user, login(), logout().\n2. Build a ProtectedRoute component that redirects to /login if not logged in.\n3. Login page with fake credentials (admin / 1234).\n4. Dashboard page visible only when logged in.",
+    "answer": "// AuthContext.jsx\nimport\n \n{\n \ncreateContext, useState, use\n \n} from\n \n'react';\nconst AuthContext\n \n= createContext(null);\nexport\n \nfunction AuthProvider({ children }) {\nconst [user,\n \nsetUser] = useState(null);\nconst login\n \n= (username, password)\n \n=> {\nif\n \n(username === 'admin' && password\n \n===\n \n'1234')\n \n{\nsetUser({ username, role: 'admin' });\nreturn true;\n}\nreturn\n \nfalse;\n};\nconst logout\n \n= () =>\n \nsetUser(null);\nreturn\n \n(\n<AuthContext value={{ user, login, logout\n \n}}>\n{children}\n</AuthContext>\n);\n}\nexport\n \nconst useAuth =\n \n() => use(AuthContext);\n// ProtectedRoute.jsx\nimport\n \n{\n \nNavigate\n \n} from 'react-router-dom';\nimport\n \n{\n \nuseAuth }\n \nfrom './AuthContext';\nexport\n \nfunction ProtectedRoute({ children\n \n})\n \n{\nconst { user\n \n} =\n \nuseAuth();\nreturn\n \nuser\n \n? children : <Navigate\n \nto='/login'\n \nreplace\n \n/>;\n}",
+    "tip": "Context value mein object dete waqt useMemo se wrap karo agar performance sensitive hai -- warna har parent render pe naya object banta hai aur saare consumers re-render karte hain."
+  },
+  {
+    "id": 16,
+    "section": "Patterns and Advanced",
+    "title": "Create a modal using ReactDOM.createPortal that renders outside the main app DOM tree.",
+    "setup": "React 19 project. index.html mein ek extra div add karo.",
+    "task": "1. index.html mein add karo.\n2. Modal component createPortal use kare -- renders into #modal-root.\n3. Open/close button in App.\n4. ESC key press par modal close ho.\n5. Backdrop click par bhi close ho.",
+    "answer": "// Modal.jsx\nimport\n \n{\n \nuseEffect\n \n} from 'react';\nimport\n \n{\n \ncreatePortal\n \n} from 'react-dom';\nexport\n \nfunction Modal({ isOpen, onClose,\n \nchildren\n \n})\n \n{\nuseEffect(()\n \n=>\n \n{\nfunction handleKey(e) {\nif\n \n(e.key === 'Escape') onClose();\n}\nif\n \n(isOpen) document.addEventListener('keydown',\n \nhandleKey);\nreturn\n \n()\n \n=> document.removeEventListener('keydown',\n \nhandleKey);\n},\n \n[isOpen,\n \nonClose]);\nif\n \n(!isOpen)\n \nreturn\n \nnull;\nreturn\n \ncreatePortal(\n<div\n \nonClick={onClose} style={{\nposition: 'fixed', inset: 0,\nbackground:\n \n'rgba(0,0,0,0.5)',\ndisplay:\n \n'flex',\n \nalignItems: 'center',\n \njustifyContent:\n \n'center',\n}}>\n<div\n \nonClick={e\n \n=> e.stopPropagation()}\n \nstyle={{\nbackground: 'white', padding:\n \n32,\n \nborderRadius:\n \n12,\n \nminWidth:\n \n300,\n}}>\n{children}\n<button onClick={onClose} style={{ marginTop:\n \n16\n \n}}>Close</button>\n</div>\n</div>,\ndocument.getElementById('modal-root')\n);\n}",
+    "tip": "Portal DOM mein #modal-root mein render hota hai lekin React tree mein App ka child hai. Isliye events React tree se bubble karte hain. e.stopPropagation() modal content mein lagao backdrop click se bachne ke liye."
+  },
+  {
+    "id": 17,
+    "section": "Patterns and Advanced",
+    "title": "Build an Error Boundary component that catches errors and shows a fallback UI.",
+    "setup": "React 19 project.",
+    "task": "1. Create ErrorBoundary class component.\n2. BuggyComponent throws an error when a button is clicked.\n3. ErrorBoundary should show friendly fallback UI.\n4. Add a 'Try Again' button that resets the error state.",
+    "answer": "import\n \n{\n \nComponent\n \n} from 'react';\nclass ErrorBoundary extends Component\n \n{\nstate = { hasError:\n \nfalse, error: null\n \n};\nstatic\n \ngetDerivedStateFromError(error)\n \n{\nreturn\n \n{ hasError:\n \ntrue, error };\n}\ncomponentDidCatch(error, info) {\nconsole.error('Caught:', error, info.componentStack);\n}\nhandleReset\n \n= ()\n \n=>\n \n{\nthis.setState({ hasError: false,\n \nerror: null\n \n});\n};\nrender()\n \n{\nif\n \n(this.state.hasError) {\nreturn (\n<div style={{\n \npadding: 24, border: '1px solid\n \nred',\n \nborderRadius:\n \n8\n \n}}>\n<h2>Something went wrong</h2>\n<p>{this.state.error?.message}</p>\n<button\n \nonClick={this.handleReset}>Try\n \nAgain</button>\n</div>\n);\n}\nreturn\n \nthis.props.children;\n}\n}\nfunction\n \nBuggyComponent() {\nconst [crash, setCrash] = useState(false);\nif\n \n(crash) throw\n \nnew\n \nError('Intentional\n \ncrash!');\nreturn\n \n<button onClick={() => setCrash(true)}>Click\n \nto\n \ncrash</button>;\n}\nexport\n \ndefault\n \nfunction App() {\nreturn\n \n(\n<ErrorBoundary>\n<BuggyComponent\n \n/>\n</ErrorBoundary>\n);\n}",
+    "tip": "Error Boundary abhi bhi class component hona chahiye -- getDerivedStateFromError aur componentDidCatch lifecycle methods sirf class mein available hain. Reset ke liye state clear karo -- children fresh mount honge."
+  },
+  {
+    "id": 18,
+    "section": "Forms and Zustand",
+    "title": "Build a multi-step registration form using react-hook-form with validation.",
+    "setup": "npm\n \ninstall react-hook-form\n\nSETUP\n\nReact 19 project + react-hook-form:\n\nnpm\n \ninstall react-hook-form",
+    "task": "1. Step 1: Name + Email (required, email format validation).\n2. Step 2: Password + Confirm Password (must match).\n3. Next button disabled if current step is invalid.\n4. On final submit -- log all form data.",
+    "answer": "import\n \n{\n \nuseForm }\n \nfrom 'react-hook-form';\nimport\n \n{\n \nuseState\n \n} from 'react';\nexport\n \ndefault\n \nfunction MultiStepForm() {\nconst [step,\n \nsetStep] = useState(1);\nconst [allData,\n \nsetAllData] = useState({});\nconst { register, handleSubmit, watch,\nformState:\n \n{ errors, isValid } }\n \n= useForm({\n \nmode:\n \n'onChange'\n \n});\nconst onStep1 =\n \n(data) => {\nsetAllData(d => ({\n \n...d, ...data\n \n}));\nsetStep(2);\n};\nconst onStep2 =\n \n(data) => {\nconst final =\n \n{ ...allData, ...data };\nconsole.log('All form data:', final);\nalert('Registration complete!');\n};\nif\n \n(step\n \n===\n \n1)\n \nreturn (\n<form onSubmit={handleSubmit(onStep1)}>\n<h2>Step\n \n1 of 2</h2>\n<input {...register('name', { required:\n \n'Name\n \nrequired'\n \n})}\nplaceholder='Full Name'\n \n/>\n{errors.name\n \n&&\n \n<p>{errors.name.message}</p>}\n<input {...register('email', {\nrequired:\n \n'Email required',\npattern: {\n \nvalue: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/,\nmessage: 'Invalid\n \nemail' }\n})} placeholder='Email' />\n{errors.email &&\n \n<p>{errors.email.message}</p>}\n<button\n \ntype='submit' disabled={!isValid}>Next</button>\n</form>\n);\nreturn\n \n(\n<form onSubmit={handleSubmit(onStep2)}>\n<h2>Step\n \n2 of 2</h2>\n<input {...register('password',\n \n{ required:\n \ntrue,\n \nminLength:\n \n6\n \n})}\ntype='password' placeholder='Password'\n \n/>\n<input {...register('confirm',\n \n{\nvalidate:\n \nv =>\n \nv === watch('password') ||\n \n'Passwords\n \ndo\n \nnot\n \nmatch'\n})} type='password' placeholder='Confirm Password'\n \n/>\n{errors.confirm\n \n&& <p>{errors.confirm.message}</p>}\n<button\n \ntype='submit' disabled={!isValid}>Register</button>\n</form>\n);\n}",
+    "tip": "react-hook-form uncontrolled inputs use karta hai -- sirf validation trigger hone par re-render hota hai. 100 fields bhi hoon toh performance issue nahi hoga. watch() se live field value milti hai -- confirm password match ke liye useful."
+  },
+  {
+    "id": 19,
+    "section": "Forms and Zustand",
+    "title": "Build a global cart with Zustand -- add, remove, and persist to localStorage.",
+    "setup": "npm\n \ninstall zustand\n\nSETUP\n\nReact 19 + Zustand:\n\nnpm\n \ninstall zustand",
+    "task": "1. Create a Zustand store for cart -- items, addItem, removeItem, clearCart.\n2. Persist cart to localStorage using zustand/middleware persist.\n3. ProductCard component with Add to Cart.\n4. CartSummary component showing count and total.\n5. No Context Provider needed -- Zustand works without it.",
+    "answer": "// store/cartStore.js\nimport\n \n{\n \ncreate }\n \nfrom\n \n'zustand';\nimport\n \n{\n \npersist }\n \nfrom 'zustand/middleware';\nexport\n \nconst useCartStore = create(persist(\n(set, get) => ({\nitems:\n \n[],\naddItem: (product)\n \n=> set(state => {\nconst exists\n \n= state.items.find(i => i.id ===\n \nproduct.id);\nif\n \n(exists)\nreturn\n \n{ items: state.items.map(i\n \n=>\ni.id\n \n===\n \nproduct.id ? { ...i, qty:\n \ni.qty +\n \n1\n \n}\n \n:\n \ni)\n \n};\nreturn {\n \nitems:\n \n[...state.items, {\n \n...product,\n \nqty:\n \n1\n \n}]\n \n};\n}),\nremoveItem: (id) => set(state =>\n \n({\nitems: state.items.filter(i =>\n \ni.id\n \n!==\n \nid),\n})),\nclearCart:\n \n()\n \n=> set({ items: []\n \n}),\ntotal:\n \n()\n \n=> get().items.reduce(\n(sum, i)\n \n=>\n \nsum\n \n+ i.price * i.qty,\n \n0\n),\n}),\n{\n \nname: 'cart-storage' }\n));\n// CartSummary.jsx\nimport\n \n{\n \nuseCartStore\n \n} from './store/cartStore';\nexport\n \nfunction CartSummary() {\nconst items\n \n= useCartStore(s =>\n \ns.items);\nconst total\n \n= useCartStore(s =>\n \ns.total);\nconst clearCart\n \n= useCartStore(s =>\n \ns.clearCart);\nreturn\n \n(\n<div>\n<p>Items: {items.length} | Total: Rs.{total()}</p>\n<button\n \nonClick={clearCart}>Clear</button>\n</div>\n);\n}",
+    "tip": "Zustand mein subscribe selective hoti hai -- useCartStore(s => s.items) se sirf items change hone par re-render hoga. Context ke unlike koi Provider nahi chahiye -- store directly import karo kahin bhi."
+  }
+]
