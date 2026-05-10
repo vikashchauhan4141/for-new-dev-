@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Home, BookOpen, Code, ChevronLeft, Menu, Layers,
-  Cpu, Zap, GitBranch, Package, LogOut, Atom
+  Cpu, Zap, GitBranch, Package, LogOut, Atom, Briefcase
 } from 'lucide-react';
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { name: 'State & Props', path: '/state-props', icon: <Zap size={18} /> },
   { name: 'Hooks Deep Dive', path: '/hooks', icon: <GitBranch size={18} /> },
   { name: 'Components', path: '/components-guide', icon: <Package size={18} /> },
+  { name: 'Interview Prep', path: '/interview', icon: <Briefcase size={18} /> },
   { name: 'React MCQ', path: '/react-mcq', icon: <BookOpen size={18} /> },
   { name: 'Coding Practice', path: '/react-practice', icon: <Code size={18} /> },
 ];

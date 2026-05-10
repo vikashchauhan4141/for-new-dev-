@@ -8,6 +8,7 @@ const routeTitles = {
   '/state-props': 'State & Props',
   '/hooks': 'Hooks Deep Dive',
   '/components-guide': 'Components Guide',
+  '/interview': 'Interview Prep',
   '/react-mcq': 'React MCQ Quiz',
   '/react-practice': 'Coding Practice',
 };

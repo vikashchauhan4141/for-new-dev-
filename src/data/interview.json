@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1, "level": "Basic", "color": "#22c55e",
+    "q": "React kya hai? Library hai ya Framework?",
+    "a": "React ek JavaScript LIBRARY hai, framework nahi. Sirf UI banane ke kaam aata hai. Routing ke liye React Router, state ke liye Redux/Zustand alag se lagte hain. Facebook ne ise banaya aur maintain kiya hai.",
+    "tip": "Interviewers ye confusion test karte hain. Library vs Framework clearly bolna — 'React sirf View layer handle karta hai.'"
+  },
+  {
+    "id": 2, "level": "Basic", "color": "#22c55e",
+    "q": "Virtual DOM kya hota hai? Kaise kaam karta hai?",
+    "a": "Virtual DOM real DOM ka ek lightweight JavaScript copy hai. Jab state change hoti hai:\n1. React naya Virtual DOM banata hai\n2. Purane Virtual DOM se compare karta hai (Diffing algorithm)\n3. Sirf jo parts change hue hain, unhe real DOM mein update karta hai (Reconciliation)\nIsse app fast rehta hai.",
+    "tip": "'Create → Diff → Patch' — ye 3 steps clearly bolna. React Fiber is process ko efficiently handle karta hai."
+  },
+  {
+    "id": 3, "level": "Basic", "color": "#22c55e",
+    "q": "Props aur State mein kya difference hai?",
+    "a": "Props:\n• Parent se child mein pass hote hain\n• Read-only hote hain (immutable)\n• Component ke bahar se aate hain\n\nState:\n• Component ki apni internal memory hai\n• useState() se manage hoti hai\n• Change hone par component re-render hota hai\n• Component khud update karta hai",
+    "tip": "Simple formula: 'Props = function ke arguments, State = function ke internal variables.' Ye analogy bahut impress karti hai."
+  },
+  {
+    "id": 4, "level": "Basic", "color": "#22c55e",
+    "q": "JSX kya hai? Browser ise kaise samajhta hai?",
+    "a": "JSX (JavaScript XML) ek syntax extension hai jo HTML jaisa dikhta hai lekin JavaScript ke andar likha jaata hai. Browser directly JSX nahi samajhta — Babel jaisa transpiler ise React.createElement() calls mein convert karta hai.\n\n<h1>Hello</h1>  →  React.createElement('h1', null, 'Hello')",
+    "tip": "JSX vs HTML differences yaad rakho: class ki jagah className, for ki jagah htmlFor, camelCase events (onClick), self-closing tags zaroori."
+  },
+  {
+    "id": 5, "level": "Basic", "color": "#22c55e",
+    "q": "Functional Component vs Class Component — kya fark hai?",
+    "a": "Functional Component (Modern):\n• Simple JavaScript function hai\n• Hooks use karta hai (useState, useEffect)\n• Concise, readable aur better performance\n\nClass Component (Legacy):\n• ES6 class extends React.Component\n• Lifecycle methods (componentDidMount) aur 'this' keyword use karta hai\n• Verbose hota hai.",
+    "tip": "'Functional components with hooks are the modern standard. Class components are legacy.' Ye clearly state karo."
+  },
+  {
+    "id": 6, "level": "Basic", "color": "#22c55e",
+    "q": "key prop kyun zaroori hai list rendering mein?",
+    "a": "React jab array/list render karta hai toh 'key' prop se identify karta hai ke kaunsa item change, add, ya remove hua hai. Bina key ke React poori list re-render karta hai, jisse performance issue hota hai.\n\nKey unique honi chahiye siblings mein. Index ko as key use karna avoid karna chahiye agar list modify (sort, delete) ho rahi ho.",
+    "tip": "'Keys help React identify which items have changed, added, or removed' — exact React docs wali line bolna."
+  },
+  {
+    "id": 7, "level": "Basic", "color": "#22c55e",
+    "q": "React Fragment (<></>) kya hota hai?",
+    "a": "React mein ek component ko hamesha ek single parent element return karna hota hai. Fragments aapko multiple elements return karne dete hain bina DOM mein extra node (jaise <div>) add kiye.\nSyntax: <React.Fragment>...</React.Fragment> ya shorthand <></>",
+    "tip": "Interview mein bolna: 'Fragments keep the DOM clean and prevent CSS layout issues caused by unnecessary wrapper divs.'"
+  },
+  {
+    "id": 8, "level": "Basic", "color": "#22c55e",
+    "q": "Controlled vs Uncontrolled Components kya hote hain?",
+    "a": "Controlled:\n• Form input ki value React state se control hoti hai.\n• onChange se state update hoti hai. React 'single source of truth' hota hai.\n\nUncontrolled:\n• Form data DOM mein store hota hai.\n• useRef hook se value access karte hain.\n• Simpler but validation hard hoti hai. (File inputs hamesha uncontrolled hote hain)",
+    "tip": "Controlled components prefer karo React mein. Bade forms ke liye 'React Hook Form' library ka zikra karo."
+  },
+  {
+    "id": 9, "level": "Basic", "color": "#22c55e",
+    "q": "Lifting State Up kya hota hai?",
+    "a": "Jab do sibling components ko same state share karni hoti hai, toh un dono ke nearest common parent mein state ko move kar dete hain. Ise 'Lifting State Up' kehte hain. Parent state ko manage karta hai aur children ko props ke through data aur setter function pass karta hai.",
+    "tip": "Ye React ka fundamental pattern hai. Iske aage hi Context API ki zarurat kyu padti hai (Prop Drilling), ye explain kar sakte ho."
+  },
+  {
+    "id": 10, "level": "Basic", "color": "#22c55e",
+    "q": "Prop Drilling kya hoti hai?",
+    "a": "Jab data ko component tree mein bahut deep down pass karna hota hai, toh beech ke un components ko bhi props receive aur pass karne padte hain jinhe actual mein us data ki zarurat nahi hoti. Is process ko Prop Drilling kehte hain. Isko Context API ya State management tools se solve kiya jata hai.",
+    "tip": "Hamesha Prop Drilling ka solution bhi batao (Context API, Zustand, Redux) taaki complete answer lage."
+  },
+  {
+    "id": 11, "level": "Intermediate", "color": "#f59e0b",
+    "q": "useEffect kaise kaam karta hai? Dependency array kya hai?",
+    "a": "useEffect side effects (API calls, subscriptions, timers) run karne ke liye use hota hai.\n\nDependency array:\n• [] (Empty array) — Sirf mount par ek baar chalega (componentDidMount)\n• [value] — Sirf tab chalega jab 'value' change hogi (componentDidUpdate)\n• No array — Har render ke baad chalega\n\nReturn function se cleanup karte hain (componentWillUnmount).",
+    "tip": "'useEffect replaces componentDidMount, componentDidUpdate, and componentWillUnmount.' Ye mapping definitely mention karo."
+  },
+  {
+    "id": 12, "level": "Intermediate", "color": "#f59e0b",
+    "q": "Rules of Hooks kya hain?",
+    "a": "Rule 1: Sirf Top Level par call karo.\n• Hooks ko loops, conditions, ya nested functions mein call mat karo. React rely karta hai order of execution par.\n\nRule 2: Sirf React Functions mein call karo.\n• Functional components ya custom hooks ke andar hi use karo. Regular JavaScript functions mein nahi.",
+    "tip": "'eslint-plugin-react-hooks' automatically in rules ko enforce karta hai, ye zaroor batao."
+  },
+  {
+    "id": 13, "level": "Intermediate", "color": "#f59e0b",
+    "q": "useMemo aur useCallback mein kya fark hai?",
+    "a": "Dono performance optimization ke liye hain.\n• useMemo: Computed VALUE memoize (cache) karta hai. Expensive calculations ko bar-bar run hone se rokta hai.\n• useCallback: FUNCTION reference memoize karta hai. Tab use hota hai jab function as a prop child component ko pass ho raha ho (to prevent unnecessary re-renders).\n\nDono tabhi update hote hain jab unki dependency array elements change hon.",
+    "tip": "'useMemo returns a memoized value, useCallback returns a memoized function.' React.memo ke sath useCallback ka combination best hai."
+  },
+  {
+    "id": 14, "level": "Intermediate", "color": "#f59e0b",
+    "q": "React.memo kya hai aur kab use karein?",
+    "a": "React.memo ek Higher Order Component (HOC) hai jo component ko memoize karta hai. Agar component ke props change nahi hue hain, toh ye re-render ko skip kar deta hai.\nYe shallow comparison use karta hai. Iska use tabhi karna chahiye jab component heavy ho ya list ke andar bar-bar render ho raha ho.",
+    "tip": "'Premature optimization is bad. React is already fast.' Har component pe React.memo mat lagao, sirf tab jab actual render issue ho."
+  },
+  {
+    "id": 15, "level": "Intermediate", "color": "#f59e0b",
+    "q": "useRef kab aur kyu use karte hain?",
+    "a": "useRef do main kaam karta hai:\n1. DOM elements ko directly access karna (focus input, dimensions get karna).\n2. Mutable values store karna jo change hone par component ko re-render nahi karwati (like timer IDs, previous state).\n\nuseRef() ek object return karta hai jisme 'current' property hoti hai. Iski value synchronously update hoti hai.",
+    "tip": "Interviewers puchte hain 'state aur ref mein kya fark hai?'. Bolna: 'State change re-renders component, Ref change does NOT re-render.'"
+  },
+  {
+    "id": 16, "level": "Intermediate", "color": "#f59e0b",
+    "q": "Context API kya hai? Kab use karein?",
+    "a": "Context API prop drilling se bachane ka tarika hai. Data globally available ho jata hai component tree mein.\nSteps:\n1. createContext() se context banta hai\n2. <Context.Provider value={...}> se wrap karte hain\n3. useContext(Context) se data read karte hain\n\nUse case: Theme (dark/light), User Auth details, language settings.",
+    "tip": "Context API is NOT for rapidly changing state. Agar state fast change ho rahi hai toh performance degrade hogi, tab Zustand ya Redux better hai."
+  },
+  {
+    "id": 17, "level": "Intermediate", "color": "#f59e0b",
+    "q": "React mein performance optimize kaise karein?",
+    "a": "1. Code Splitting & Lazy Loading (React.lazy)\n2. useMemo & useCallback for expensive operations\n3. React.memo to prevent unnecessary re-renders\n4. Windowing/Virtualization (react-window) for large lists\n5. Proper 'key' prop usage\n6. Avoid anonymous functions directly in JSX rendering\n7. Image optimizations",
+    "tip": "Pehle React DevTools Profiler use karke bottleneck dhundo, fir optimize karo. Don't optimize without measuring."
+  },
+  {
+    "id": 18, "level": "Intermediate", "color": "#f59e0b",
+    "q": "Custom Hook kya hota hai? Example do.",
+    "a": "Custom Hook ek normal JS function hai jiska naam 'use' se shuru hota hai aur wo apne andar dusre React Hooks (useState, useEffect) call karta hai. Ye component logic ko extract aur reuse karne ke kaam aata hai.\n\nExample: useFetch, useWindowSize, useLocalStorage. Ye UI nahi return karte, balki state aur functions return karte hain.",
+    "tip": "Custom hooks allow logic sharing without changing component hierarchy (unlike HOC or Render Props)."
+  },
+  {
+    "id": 19, "level": "Intermediate", "color": "#f59e0b",
+    "q": "useEffect aur useLayoutEffect mein kya farq hai?",
+    "a": "• useEffect: Asynchronous hota hai. DOM paint hone ke baad run hota hai. Zyadatar API calls aur side effects ke liye yahi use hota hai.\n• useLayoutEffect: Synchronous hota hai. DOM update hone ke baad lekin browser ke paint karne se THEEK PEHLE run hota hai. Agar DOM se measurements leni hain (width/height) aur turant mutate karna hai bina UI flicker ke, tab use karte hain.",
+    "tip": "99% time useEffect use hota hai. useLayoutEffect sirf tab use karo jab DOM measurement related UI flickers (jitters) fix karne ho."
+  },
+  {
+    "id": 20, "level": "Intermediate", "color": "#f59e0b",
+    "q": "Higher-Order Components (HOC) kya hote hain?",
+    "a": "HOC ek function hai jo ek component receive karta hai aur ek enhanced (naya) component return karta hai. Ye component logic reuse karne ka purana (class-components era) pattern hai.\nExample: withRouter, withAuth.\n\nModern React mein Custom Hooks ne HOC pattern ko mostly replace kar diya hai kyunki hooks zyada clean hain.",
+    "tip": "Agar interviewer pooche, toh boldo 'HOC is an advanced pattern for reusing logic, but now we prefer Custom Hooks for better readability and avoiding wrapper hell.'"
+  },
+  {
+    "id": 21, "level": "Intermediate", "color": "#f59e0b",
+    "q": "React Router DOM kaise kaam karta hai?",
+    "a": "React Router DOM single-page applications (SPA) mein client-side routing enable karta hai. Server pe request bheje bina URL change karta hai aur UI update karta hai.\n\nComponents: <BrowserRouter>, <Routes>, <Route>, <Link>, aur <useNavigate> hook.\nYe HTML5 history API (pushState) ka use karke browser history manage karta hai.",
+    "tip": "Mention React Router v6 features: data routers, loaders, actions. Ye advanced knowledge show karega."
+  },
+  {
+    "id": 22, "level": "Advanced", "color": "#ef4444",
+    "q": "React Reconciliation aur Fiber Architecture kya hai?",
+    "a": "Reconciliation vo algorithm hai jisse React diffing karke DOM update karta hai.\n\nReact Fiber (React 16+) iska naya implementation hai:\n• Render work ko chhote 'chunks' (fibers) mein todta hai.\n• High-priority tasks (jaise typing) ko low-priority tasks (jaise data fetch) se pehle execute karta hai.\n• Pause, abort aur resume rendering support karta hai. Ye UI ko smooth rakhta hai.",
+    "tip": "Keyword: 'Incremental rendering'. Fiber enables React to pause work and come back to it later, keeping the main thread free for user interactions."
+  },
+  {
+    "id": 23, "level": "Advanced", "color": "#ef4444",
+    "q": "useReducer kab use karein? Redux se kaise different hai?",
+    "a": "useReducer complex state logic (jahan next state previous pe depend kare) manage karne ke liye hai. (e.g., forms, shopping cart).\n\nRedux se difference:\n• useReducer local component level par hota hai.\n• Redux global state management library hai.\n• Redux mein middlewares (Thunk/Saga), DevTools extensions aur centralized store hota hai.\n• Redux Toolkit (RTK) modern Redux hai jo boilerplate kam karta hai.",
+    "tip": "Agar complex local state hai -> useReducer. Agar global state jo puri app me chaiye -> Zustand ya Redux Toolkit."
+  },
+  {
+    "id": 24, "level": "Advanced", "color": "#ef4444",
+    "q": "Error Boundaries kya hain? Kaise banate hain?",
+    "a": "Error Boundaries JavaScript runtime errors pakad kar ek fallback UI dikhate hain, jisse poori app crash nahi hoti.\n\nInhe sirf Class Components se hi banaya ja sakta hai (using static getDerivedStateFromError aur componentDidCatch). Functional components mein natively possible nahi hai, isliye hum 'react-error-boundary' library use karte hain.\nEvent handlers aur async code ke errors ye nahi pakadte.",
+    "tip": "Always mention that they only catch errors in rendering, lifecycle methods, and constructors of the whole tree below them."
+  },
+  {
+    "id": 25, "level": "Advanced", "color": "#ef4444",
+    "q": "Code Splitting kya hai? Kaise implement karte hain?",
+    "a": "Code Splitting aapki app ke code ko chote chunks mein tod deta hai taaki initial load pe sara code browser download na kare. Isse First Contentful Paint (FCP) fast hota hai.\n\nImplementation:\nimport { lazy, Suspense } from 'react';\nconst Dashboard = lazy(() => import('./Dashboard'));\n\n<Suspense fallback={<Spinner />}>\n  <Dashboard />\n</Suspense>\nMostly routing level pe implement kiya jata hai.",
+    "tip": "Vite aur Webpack ye under-the-hood automatically handle karte hain dynamic imports ke through."
+  },
+  {
+    "id": 26, "level": "Advanced", "color": "#ef4444",
+    "q": "React 19 ke naye features kya hain?",
+    "a": "1. Actions: Async data mutations form submit par easy handle karta hai.\n2. useActionState: Form processing aur pending state directly manage karta hai.\n3. useOptimistic: Server response ka wait kiye bina UI turant update karta hai.\n4. use() API: Context aur Promises ko natively consume karta hai (even inside conditionals).\n5. Server Components: Default RSC support, zero JS bundle sent to client.\n6. forwardRef deprecation: Ab 'ref' direct prop ban gaya hai.",
+    "tip": "Interviewer ko ye batane se vo samajh jayega ki aap up-to-date developer hain."
+  },
+  {
+    "id": 27, "level": "Advanced", "color": "#ef4444",
+    "q": "React Portals kya hote hain?",
+    "a": "React Portals allow karte hain ek component ko DOM hierarchy ke bilkul alag part mein render karna, parent component ke CSS overflow:hidden/z-index issues bypass karne ke liye.\n\nUsage: ReactDOM.createPortal(child, container)\nBest use cases: Modals, Tooltips, Dropdowns, aur Popovers jahan element ko document.body ke pass attach karna zaroori hota hai.",
+    "tip": "Mention karo: 'Even though portal is outside DOM tree, it still behaves like a normal React child, capturing events through event bubbling.'"
+  },
+  {
+    "id": 28, "level": "Advanced", "color": "#ef4444",
+    "q": "Hydration kya hoti hai React mein?",
+    "a": "Server-Side Rendering (SSR) mein Server HTML bhejta hai (Next.js vagera mein). Jab HTML browser par load hota hai toh vo static hota hai (no interactivity).\n\nHydration vo process hai jisme React us static HTML mein event listeners (onClick etc) attach karta hai aur use fully interactive React app mein convert karta hai. Agar HTML aur JS mismatch hote hain toh 'Hydration mismatch error' aati hai.",
+    "tip": "Hydration is like giving life to static HTML. Next.js ya React Server Components ki baat ho toh ye zarur pucha jata hai."
+  },
+  {
+    "id": 29, "level": "Advanced", "color": "#ef4444",
+    "q": "Automatic Batching kya hoti hai (React 18+)?",
+    "a": "Batching ka matlab hai React multiple state updates ko ek sath group karke sirf ek hi re-render karta hai performance ke liye.\n\nReact 18 se pehle sirf React event handlers (like onClick) mein batching hoti thi. Promises, setTimeout, ya native event handlers mein nahi.\nReact 18 ne 'Automatic Batching' introduce ki jisme kahin bhi state update ho, sab batch ho jayenge, extra re-renders bachane ke liye.",
+    "tip": "Performance ka ek bahut accha answer hai ye. You can mention flushSync() agar kabhi batching prevent karni ho."
+  },
+  {
+    "id": 30, "level": "Advanced", "color": "#ef4444",
+    "q": "forwardRef aur useImperativeHandle kya hain?",
+    "a": "forwardRef: Jab parent component apne child ko ref pass karke uske andar ke DOM element ko access karna chahta hai. (React 19 mein ref seedha as a prop pass hota hai, forwardRef is not needed now).\n\nuseImperativeHandle: Jab aap parent component ko child component ke specific functions (e.g., child.focus(), child.playVideo()) call karne dena chahte ho, poora DOM element expose kiye bina.",
+    "tip": "In dono ka combined use custom input components (like reusable DatePicker) banane me hota hai jahan parent ko focus control chahiye."
+  }
+]

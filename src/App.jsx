@@ -8,6 +8,7 @@ import JsxBasics from './pages/JsxBasics';
 import StateProps from './pages/StateProps';
 import Hooks from './pages/Hooks';
 import ComponentsGuide from './pages/ComponentsGuide';
+import Interview from './pages/Interview';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="state-props" element={<StateProps />} />
           <Route path="hooks" element={<Hooks />} />
           <Route path="components-guide" element={<ComponentsGuide />} />
+          <Route path="interview" element={<Interview />} />
           <Route path="react-mcq" element={<ReactMcq />} />
           <Route path="react-practice" element={<ReactPractice />} />
         </Route>
